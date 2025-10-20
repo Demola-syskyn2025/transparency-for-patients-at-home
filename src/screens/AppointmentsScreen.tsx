@@ -9,6 +9,7 @@ import CalendarHeader from '../components/appoinments/CalendarHeader';
 import CalendarGrid from '../components/appoinments/CalendarGrid';
 import AppointmentList from '../components/appoinments/AppointmentList';
 // Bottom sheet replaced with full-screen detail navigation
+import PatientAppointmentScreen from './PatientAppointmentScreen';
 
 type Role = 'patient' | 'family';
 
@@ -52,9 +53,7 @@ export default function AppointmentsScreen({
 
   if (role !== 'family') {
     return (
-      <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
-        <Text>Patient appointments (placeholder)</Text>
-      </View>
+      <PatientAppointmentScreen patientId={patientId} service={service} />
     );
   }
 

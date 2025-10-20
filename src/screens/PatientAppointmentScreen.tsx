@@ -1,16 +1,16 @@
 // src/screens/PatientAppointmentScreen.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import type { Appointment } from '../utils/types';
 import type { AppointmentService } from '../services/appointments';
 import AppointmentDetailScreen from './AppointmentDetailScreen';
 
 export default function PatientAppointmentScreen({
-  service,
   patientId,
+  service,
 }: {
-  service: AppointmentService;
   patientId: string;
+  service: AppointmentService;
 }) {
   const [items, setItems] = useState<Appointment[] | null>(null);
 
@@ -21,33 +21,32 @@ export default function PatientAppointmentScreen({
   }, [patientId, service]);
 
   const nextAppt = useMemo(() => {
-    if (!items) return undefined;
+    if (!items) return null;
     const now = new Date();
     return [...items]
       .filter(a => new Date(a.startAt) >= now)
-      .sort((a,b)=> new Date(a.startAt).getTime() - new Date(b.startAt).getTime())[0];
+      .sort((a,b)=> new Date(a.startAt).getTime() - new Date(b.startAt).getTime())[0] || null;
   }, [items]);
 
   if (items === null) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Loading appointments…</Text>
+      <View style={{ flex:1, alignItems:'center', justifyContent:'center' }}>
+        <ActivityIndicator />
+        <Text style={{ marginTop: 8 }}>Loading appointments…</Text>
       </View>
     );
   }
 
   if (!nextAppt) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>No upcoming appointments</Text>
+      <View style={{ flex:1, alignItems:'center', justifyContent:'center', padding: 16 }}>
+        <Text style={{ fontSize: 16 }}>No upcoming appointments</Text>
       </View>
     );
   }
 
-  // Reuse the detail screen by providing the same props it expects
   return (
     <AppointmentDetailScreen
-      // @ts-ignore reuse component by providing a compatible route prop
       route={{ params: { apptId: nextAppt.id } }}
       service={service}
       patientId={patientId}

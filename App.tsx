@@ -136,7 +136,7 @@ function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patien
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home">
-        {() => <HomeScreen role={role} patientId={patientId} />}
+        {() => <HomeScreen role={role} patientId={patientId} service={apptService} />}
       </Tab.Screen>
 
       <Tab.Screen name="Appointments">

@@ -136,7 +136,7 @@ function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patien
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home">
-        {() => <HomeScreen role={role} patientId={patientId} service={apptService} />}
+        {() => <HomeScreen role={role} patientId={patientId} />}
       </Tab.Screen>
 
       <Tab.Screen name="Appointments">
@@ -181,6 +181,19 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
           {() => <RootTabs role={role} patientId={patientId} uid={uid} />}
+        </Stack.Screen>
+        <Stack.Screen name="PatientAppointment" options={{ title: 'My appointment' }}>
+          {(props) => (
+            // inject services and patientId
+            <>
+              {/* @ts-ignore component typed separately */}
+              {React.createElement(require('./src/screens/PatientAppointmentScreen').default, {
+                ...props,
+                service: apptService,
+                patientId,
+              })}
+            </>
+          )}
         </Stack.Screen>
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>
           {(props) => (

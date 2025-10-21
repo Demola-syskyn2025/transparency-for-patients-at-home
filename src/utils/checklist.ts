@@ -5,6 +5,7 @@ export interface ChecklistItem {
   id: string;
   patientId: string;
   text: string;           // ví dụ: "Take morning meds"
+  detail?: string;        // brief description shown only when not done
   done: boolean;
   createdBy: string;      // 'system' cho preset
   createdAt: ISODate;

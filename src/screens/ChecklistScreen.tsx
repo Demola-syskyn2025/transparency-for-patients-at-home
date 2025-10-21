@@ -41,6 +41,11 @@ function Row({
         <Text style={{ fontSize: 12, opacity: 0.7 }}>
           {due.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
+        {!item.done && item.detail ? (
+          <Text style={{ fontSize: 12, opacity: 0.8, marginTop: 2 }}>
+            {item.detail}
+          </Text>
+        ) : null}
       </View>
       <Pressable
         onPress={() => onToggle(item.id, !item.done)}

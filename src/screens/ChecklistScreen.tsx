@@ -29,6 +29,14 @@ function Row({
   canToggle: boolean;
 }) {
   const due = new Date(item.dueAt);
+  const now = new Date();
+  const isOverdue = now.getTime() > due.getTime();
+  const statusLabel = item.done ? 'Completed' : (isOverdue ? 'Forgotten' : 'In progress');
+  const statusStyles = item.done
+    ? { bg: '#E7F6EC', border: '#16a34a', text: '#0B3D2E' }       // Completed: greenish
+    : isOverdue
+    ? { bg: '#FDECEC', border: '#EF4444', text: '#7F1D1D' }       // Forgotten: red
+    : { bg: '#F3F4F6', border: '#ddd', text: '#374151' };         // In progress: neutral
   return (
     <View style={{
       paddingVertical: 10,
@@ -63,10 +71,10 @@ function Row({
       ) : (
         <View style={{
           paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10,
-          backgroundColor: item.done ? '#E7F6EC' : '#F3F4F6',
-          borderWidth: 1, borderColor: item.done ? '#16a34a' : '#ddd'
+          backgroundColor: statusStyles.bg,
+          borderWidth: 1, borderColor: statusStyles.border
         }}>
-          <Text style={{ color: item.done ? '#0B3D2E' : '#555' }}>{item.done ? 'Done' : 'To do'}</Text>
+          <Text style={{ color: statusStyles.text }}>{statusLabel}</Text>
         </View>
       )}
     </View>

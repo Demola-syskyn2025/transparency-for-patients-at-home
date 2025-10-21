@@ -22,9 +22,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({
   item,
   onToggle,
+  canToggle,
 }: {
   item: ChecklistItem;
   onToggle: (id: string, next: boolean) => void;
+  canToggle: boolean;
 }) {
   const due = new Date(item.dueAt);
   return (
@@ -47,16 +49,26 @@ function Row({
           </Text>
         ) : null}
       </View>
-      <Pressable
-        onPress={() => onToggle(item.id, !item.done)}
-        style={{
-          paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10,
-          borderWidth: 1, borderColor: item.done ? '#16a34a' : '#111',
-          backgroundColor: item.done ? '#E7F6EC' : 'transparent'
-        }}
-      >
-        <Text style={{ color: item.done ? '#0B3D2E' : '#111' }}>{item.done ? 'Done' : 'Tick'}</Text>
-      </Pressable>
+      {canToggle ? (
+        <Pressable
+          onPress={() => onToggle(item.id, !item.done)}
+          style={{
+            paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10,
+            borderWidth: 1, borderColor: item.done ? '#16a34a' : '#111',
+            backgroundColor: item.done ? '#E7F6EC' : 'transparent'
+          }}
+        >
+          <Text style={{ color: item.done ? '#0B3D2E' : '#111' }}>{item.done ? 'Done' : 'Tick'}</Text>
+        </Pressable>
+      ) : (
+        <View style={{
+          paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10,
+          backgroundColor: item.done ? '#E7F6EC' : '#F3F4F6',
+          borderWidth: 1, borderColor: item.done ? '#16a34a' : '#ddd'
+        }}>
+          <Text style={{ color: item.done ? '#0B3D2E' : '#555' }}>{item.done ? 'Done' : 'To do'}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -65,11 +77,14 @@ export default function ChecklistScreen({
   patientId,
   uid,         // không dùng nhiều, giữ để đồng bộ props
   service,
+  role,
 }: {
   patientId: string;
   uid: string;
   service: ChecklistService;
+  role: 'patient' | 'family';
 }) {
+
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const today = new Date();
 
@@ -95,6 +110,7 @@ export default function ChecklistScreen({
   }, [items]);
 
   const onToggle = async (id: string, next: boolean) => {
+    if (role !== 'patient') return; // read-only for family
     await service.toggle(patientId, id, next);
     load();
   };
@@ -108,7 +124,7 @@ export default function ChecklistScreen({
         <FlatList
           data={pending}
           keyExtractor={(i) => i.id}
-          renderItem={({ item }) => <Row item={item} onToggle={onToggle} />}
+          renderItem={({ item }) => <Row item={item} onToggle={onToggle} canToggle={role === 'patient'} />}
           ListEmptyComponent={<Text style={{ opacity:0.6 }}>All done 🎉</Text>}
           ItemSeparatorComponent={() => <View style={{ height:1, backgroundColor:'#eee' }} />}
         />
@@ -118,7 +134,7 @@ export default function ChecklistScreen({
         <FlatList
           data={done}
           keyExtractor={(i) => i.id}
-          renderItem={({ item }) => <Row item={item} onToggle={onToggle} />}
+          renderItem={({ item }) => <Row item={item} onToggle={onToggle} canToggle={role === 'patient'} />}
           ListEmptyComponent={<Text style={{ opacity:0.6 }}>No completed items yet</Text>}
           ItemSeparatorComponent={() => <View style={{ height:1, backgroundColor:'#eee' }} />}
         />

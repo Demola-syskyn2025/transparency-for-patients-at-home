@@ -161,6 +161,7 @@ function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patien
             patientId={patientId}
             uid={uid}
             service={checklistService}
+            role={role}
           />
         )}
       </Tab.Screen>

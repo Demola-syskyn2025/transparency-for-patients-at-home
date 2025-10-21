@@ -95,6 +95,7 @@ const checklistService = new MockChecklistService({
       id: 't1',
       patientId: PATIENT_ID,
       text: 'Take morning medication',
+      detail: 'Take 2 tablets of Metformin 500mg with water after breakfast.',
       done: false,
       createdBy: 'system',
       createdAt: new Date().toISOString(),
@@ -104,6 +105,7 @@ const checklistService = new MockChecklistService({
       id: 't2',
       patientId: PATIENT_ID,
       text: 'Measure blood pressure',
+      detail: 'Sit for 5 minutes before measuring. Record systolic/diastolic.',
       done: false,
       createdBy: 'system',
       createdAt: new Date().toISOString(),
@@ -113,6 +115,7 @@ const checklistService = new MockChecklistService({
       id: 't3',
       patientId: PATIENT_ID,
       text: 'Record temperature',
+      detail: 'Use the digital thermometer under the tongue for 1 minute.',
       done: true,
       completedAt: todayAt(8, 30),
       createdBy: 'system',
@@ -123,6 +126,7 @@ const checklistService = new MockChecklistService({
       id: 't4',
       patientId: PATIENT_ID,
       text: 'Take evening pills',
+      detail: '1 pill of vitamin D after dinner with a glass of water.',
       done: true,
       completedAt: todayAt(8, 30),
       createdBy: 'system',
@@ -181,19 +185,6 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
           {() => <RootTabs role={role} patientId={patientId} uid={uid} />}
-        </Stack.Screen>
-        <Stack.Screen name="PatientAppointment" options={{ title: 'My appointment' }}>
-          {(props) => (
-            // inject services and patientId
-            <>
-              {/* @ts-ignore component typed separately */}
-              {React.createElement(require('./src/screens/PatientAppointmentScreen').default, {
-                ...props,
-                service: apptService,
-                patientId,
-              })}
-            </>
-          )}
         </Stack.Screen>
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>
           {(props) => (

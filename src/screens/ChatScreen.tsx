@@ -11,8 +11,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useChat } from "../services/chat"; // adjust import path
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { useChat } from "../services/chat";
+import Speech from "../components/appoinments/Speech";
+
 
 type SessionItem = { id: string; title: string };
 
@@ -116,6 +117,7 @@ export default function ChatScreen() {
             />
 
             <Button title="Start New Chat" onPress={() => createSession(sessionName)} />
+            <Speech />
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>

@@ -7,6 +7,7 @@ import { View, Text, Switch } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
+import ChatScreen from './src/screens/ChatScreen';
 import { MockAppointmentService } from './src/services/appointments';
 import type { Appointment, ChatMessage } from './src/utils/types';
 
@@ -164,6 +165,9 @@ function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patien
             role={role}
           />
         )}
+      </Tab.Screen>
+      <Tab.Screen name="Chat">
+        {() => <ChatScreen />}
       </Tab.Screen>
     </Tab.Navigator>
   );

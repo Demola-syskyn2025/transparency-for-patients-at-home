@@ -19,6 +19,7 @@ type SessionItem = { id: string; title: string; ended?: boolean };
 
 export default function ChatScreen() {
   const navigation = useNavigation<any>();
+  const BASE_URL = "http://your-id-address:3000";
   const {
     sessionId,
     messages,
@@ -28,7 +29,8 @@ export default function ChatScreen() {
     loading,
     listSessions,
     getMessages,
-  } = useChat("http://replaceyourpingIPV4:3000");
+  } = useChat(BASE_URL);
+
 
   const [sessionName, setSessionName] = useState("");
   const [text, setText] = useState("");
@@ -36,12 +38,13 @@ export default function ChatScreen() {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [loadingOldChat, setLoadingOldChat] = useState(false);
   const [localActiveSessionId, setLocalActiveSessionId] = useState<string | null>(null);
-  
+  const [newSessionCreated, setNewSessionCreated] = useState(false);
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
 
-  const activeSessionId = sessionId || localActiveSessionId;
+  //Use to load chat
+  const activeSessionId = localActiveSessionId;
 
   const currentSessionEnded = useMemo(() => {
     if (!activeSessionId) return false;
@@ -52,10 +55,11 @@ export default function ChatScreen() {
     (async () => {
       setLoadingSessions(true);
       const list = await listSessions();
+      const sid = list.map((s: SessionItem) => s.id);
       setAllSessions(list);
       setLoadingSessions(false);
     })();
-  }, []);
+  }, [newSessionCreated]);
 
   const filteredSessions = useMemo(() => {
     if (!sessionName.trim()) return allSessions;
@@ -72,12 +76,29 @@ export default function ChatScreen() {
   };
 
   const handleBackToSessions = () => {
-    // Clear the local session state
     setLocalActiveSessionId(null);
     setSessionName("");
-    // End the current session to clear sessionId in useChat hook
-    if (activeSessionId) {
-      endSession(activeSessionId);
+    setNewSessionCreated(false);
+  };
+
+  const handleStartNewChat = async (sessionName: string) => {
+    setNewSessionCreated(true);
+    const trimmedName = sessionName.trim();
+    const data = (await createSession(trimmedName)) as any;
+    if (data && data.id) {
+      setLocalActiveSessionId(data.id);
+      return;
+    }
+    try {
+      const list = await listSessions();
+      if (list && list.length > 0) {
+        const newSession = list.find((s: SessionItem) => s.title === sessionName) || list[list.length - 1];
+        if (newSession && newSession.id) {
+          setLocalActiveSessionId(newSession.id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to refresh sessions after creating session", err);
     }
   };
 
@@ -124,7 +145,7 @@ export default function ChatScreen() {
           type: "audio/mp4",
         } as any);
 
-        const response = await fetch("http://replaceyourpingIPV4:3000/stt/transcribe", {
+        const response = await fetch(`${BASE_URL}/stt/transcribe`, {
           method: "POST",
           body: formData,
         });
@@ -209,12 +230,12 @@ export default function ChatScreen() {
               placeholderTextColor="rgba(255, 255, 255, 0.4)"
               style={styles.input}
               returnKeyType="done"
-              onSubmitEditing={() => sessionName.trim() && createSession(sessionName)}
+              onSubmitEditing={() => handleStartNewChat(sessionName)}
             />
 
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => sessionName.trim() && createSession(sessionName)}
+              onPress={() => handleStartNewChat(sessionName)}
             >
               <Text style={styles.createButtonText}>Start New Chat</Text>
             </TouchableOpacity>

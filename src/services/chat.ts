@@ -3,16 +3,16 @@ import { useState } from "react";
 type UiMessage = {
   id: string;
   text: string;
-  role: "user" | "bot";
+  role: "user" | "assistant";   // <-- align with server & UI
   createdAt?: string;
 };
 
 export function useChat(baseUrl: string) {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<UiMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [endedSessions, setEndedSessions] = useState<boolean>(false);
 
-  // 1️⃣ Create a new chat session
   async function createSession(name: string) {
     if (!name.trim()) return alert("Please enter a session name");
     try {
@@ -25,45 +25,64 @@ export function useChat(baseUrl: string) {
         }),
       });
       const data = await res.json();
-      setSessionId(data.sessionId || data.id);
-      setMessages([]); // clear previous messages
+      const sid = data.sessionId || data.id;
+      setSessionId(sid);
+      setMessages([]);
     } catch (err) {
       console.error("Create session error:", err);
     }
   }
-  // 2️⃣ Get all messages in current session
-  async function getMessages(id = sessionId) {
+
+  // ---- FIXED: handle array OR {messages: []}, map to UI shape, and set sessionId
+  async function getMessages(id: string | null = sessionId) {
     if (!id) return;
     try {
+      setLoading(true);
       const res = await fetch(`${baseUrl}/chat/sessions/${id}/messages`);
       const data = await res.json();
-      setMessages(data.messages || []);
+
+      const raw: any[] = Array.isArray(data) ? data : (data?.messages ?? []);
+      // ensure oldest -> newest
+      raw.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      const mapped: UiMessage[] = raw.map((m) => ({
+        id: m.id ?? `${Math.random()}`,
+        text: m.content ?? "",
+        role: m.role === "assistant" ? "assistant" : "user",
+        createdAt: m.createdAt,
+      }));
+
+      setMessages(mapped);
+      setSessionId(id); // make sure UI switches to chat view
     } catch (err) {
       console.error("Get messages error:", err);
+    } finally {
+      setLoading(false);
     }
   }
 
-  // 3️⃣ Send message to chatbot
   async function sendMessage(text: string) {
     if (!sessionId || !text.trim()) return;
     setLoading(true);
 
-    // Add the user's message instantly
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    // optimistic user bubble
+    setMessages((prev) => [...prev, { id: `${Date.now()}`, role: "user", text }]);
 
     try {
-      const res = await fetch(
-        `${baseUrl}/chat/sessions/${sessionId}/messages`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: text }),
-        }
-      );
+      const res = await fetch(`${baseUrl}/chat/sessions/${sessionId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: text }),
+      });
       const data = await res.json();
+
+      // be defensive about the server response shape
+      const assistantText =
+        data?.assistant?.content ?? data?.content ?? data?.message ?? "";
+
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: data.assistant.content },
+        { id: `a-${Date.now()}`, role: "assistant", text: assistantText },
       ]);
     } catch (err) {
       console.error("Send message error:", err);
@@ -72,12 +91,9 @@ export function useChat(baseUrl: string) {
     }
   }
 
-  // 4️⃣ End chat session
-  async function endSession() {
+  async function endSession(sessionId: string) {
     if (!sessionId) return;
-    await fetch(`${baseUrl}/chat/sessions/${sessionId}/end`, {
-      method: "POST",
-    });
+    await fetch(`${baseUrl}/chat/sessions/${sessionId}/end`, { method: "POST" });
     setSessionId(null);
     setMessages([]);
   }
@@ -86,10 +102,14 @@ export function useChat(baseUrl: string) {
     try {
       const res = await fetch(`${baseUrl}/chat/sessions/4hxWqmlULbVgCXSq6s8K`);
       const data = await res.json();
-      const arr = data || [];
+      const arr = Array.isArray(data) ? data : (data ?? []);
+      arr.map((s: any) => {
+        if (s.ended) setEndedSessions(true);
+      });
       return arr.map((s: any) => ({
         id: s.id || s.sessionId || String(s.createdAt || Math.random()),
         title: s.title || s.name || "",
+        ended: s.ended
       }));
     } catch (err) {
       console.error("List sessions error:", err);
@@ -106,5 +126,6 @@ export function useChat(baseUrl: string) {
     endSession,
     loading,
     listSessions,
+    endedSessions,
   };
 }

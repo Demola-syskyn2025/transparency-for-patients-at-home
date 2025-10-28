@@ -1,6 +1,6 @@
 //src/components/appointments/AppointmentList.tsx
 import React from 'react';
-import { View, Text, Pressable, FlatList } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Appointment } from '../../utils/types';
 import StatusBadge from './StatusBadge';
 
@@ -12,26 +12,26 @@ export default function AppointmentList({
   onSelect: (a: Appointment) => void;
 }) {
   return (
-    <View style={{ padding: 12, borderTopWidth: 1, borderColor: '#eee', flex: 1 }}>
-      <Text style={{ fontWeight: '600', marginBottom: 8 }}>Appointments</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Appointments</Text>
       <FlatList
         data={appointments}
         keyExtractor={(i) => i.id}
-        ListEmptyComponent={<Text style={{ opacity: 0.6 }}>No appointments</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>No appointments</Text>}
         renderItem={({ item }) => (
-          <Pressable style={{ paddingVertical: 10 }} onPress={() => onSelect(item)}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontWeight: '700' }}>{item.title}</Text>
+          <Pressable style={styles.appointmentItem} onPress={() => onSelect(item)}>
+            <View style={styles.appointmentHeader}>
+              <Text style={styles.appointmentTitle}>{item.title}</Text>
               <StatusBadge status={item.status ?? 'scheduled'} />
             </View>
-            <Text>
+            <Text style={styles.appointmentTime}>
               {new Date(item.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               {item.location ? `  ·  ${item.location}` : ''}
             </Text>
             {(() => {
               const doc = item.assignedStaff?.find(s => s.role === 'doctor');
               return doc ? (
-                <Text style={{ opacity: 0.8 }}>Doctor: {doc.name}{doc.phone ? `  ·  ${doc.phone}` : ''}</Text>
+                <Text style={styles.appointmentDoctor}>Doctor: {doc.name}{doc.phone ? `  ·  ${doc.phone}` : ''}</Text>
               ) : null;
             })()}
           </Pressable>
@@ -40,3 +40,49 @@ export default function AppointmentList({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 12,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    flex: 1,
+  },
+  title: {
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#7FB3D5',
+    fontSize: 16,
+  },
+  emptyText: {
+    opacity: 0.6,
+    color: '#fff',
+  },
+  appointmentItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  appointmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  appointmentTitle: {
+    fontWeight: '700',
+    color: '#fff',
+    fontSize: 16,
+  },
+  appointmentTime: {
+    color: '#fff',
+    opacity: 0.8,
+    fontSize: 14,
+  },
+  appointmentDoctor: {
+    opacity: 0.8,
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 2,
+  },
+});

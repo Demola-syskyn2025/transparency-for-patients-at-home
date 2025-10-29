@@ -176,6 +176,24 @@ const ChatIcon = ({ focused }: { focused: boolean }) => (
   </View>
 );
 
+// Home Icon Component
+const HomeIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={[styles.homeIcon, focused && styles.iconFocused]}>
+      <View style={[styles.homeRoof, focused && styles.homeFocused]} />
+      <View style={[styles.homeBody, focused && styles.homeFocused]} />
+    </View>
+  </View>
+);
+
 // SOS Icon Component
 const SOSIcon = ({ focused }: { focused: boolean }) => (
   <View style={[styles.tabIconContainer, styles.sosIconContainer, focused && styles.tabIconFocused]}>
@@ -219,6 +237,15 @@ const SOSScreen = () => {
   );
 };
 
+// Home Tab (navigates to stack Home when selected)
+const HomeTab = () => {
+  const navigation = useNavigation<any>();
+  React.useEffect(() => {
+    navigation.navigate('Home');
+  }, [navigation]);
+  return <View />;
+};
+
 function RootTabs({ role, patientId, uid, onRoleChange }: { 
   role: 'patient' | 'family'; 
   patientId: string; 
@@ -239,6 +266,22 @@ function RootTabs({ role, patientId, uid, onRoleChange }: {
         tabBarShowLabel: false,
       }}
     >
+      <Tab.Screen 
+        name="Home"
+        options={{
+          tabBarIcon: ({ focused }) => <HomeIcon focused={focused} />,
+        }}
+      >
+        {() => (
+          <HomeScreen 
+            role={role}
+            patientId={patientId}
+            appointmentService={apptService}
+            checklistService={checklistService}
+          />
+        )}
+      </Tab.Screen>
+
       <Tab.Screen 
         name="Profile"
         options={{
@@ -276,7 +319,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="RootTabs">
         {/* Home Screen as default (not in tabs) */}
         <Stack.Screen name="Home" options={{ headerShown: false }}>
           {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
@@ -396,6 +439,35 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
   chatTailFocused: {
+    backgroundColor: '#fff',
+  },
+  // Home Icon
+  homeIcon: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  homeRoof: {
+    width: 22,
+    height: 22,
+    borderLeftWidth: 11,
+    borderRightWidth: 11,
+    borderBottomWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#8E9BA8',
+    marginTop: 2,
+  },
+  homeBody: {
+    width: 22,
+    height: 12,
+    backgroundColor: '#8E9BA8',
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  homeFocused: {
+    borderBottomColor: '#fff',
     backgroundColor: '#fff',
   },
   // SOS Icon

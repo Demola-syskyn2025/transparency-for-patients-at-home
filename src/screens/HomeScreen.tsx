@@ -101,7 +101,7 @@ export default function HomeScreen({
   };
 
   const handleTabNavigation = (screen: string) => {
-    navigation.navigate('RootTabs', { screen });
+    navigation.navigate(screen as any);
   };
 
   return (
@@ -208,6 +208,7 @@ export default function HomeScreen({
         </ScrollView>
 
         {/* Bottom Navigation Bar */}
+        {false && (
         <View style={styles.bottomNav}>
           <TouchableOpacity 
             style={styles.navButton}
@@ -236,6 +237,7 @@ export default function HomeScreen({
             <Text style={styles.sosText}>SOS</Text>
           </TouchableOpacity>
         </View>
+        )}
       </LinearGradient>
     </View>
   );

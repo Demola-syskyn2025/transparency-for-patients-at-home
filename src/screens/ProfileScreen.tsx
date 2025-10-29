@@ -16,16 +16,6 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                {/* Header with checkmark */}
-                <View style={styles.header}>
-                    <Pressable 
-                        style={styles.checkmarkContainer}
-                        onPress={() => navigation.navigate('Home')}
-                    >
-                        <Text style={styles.checkmark}>✓</Text>
-                    </Pressable>
-                </View>
-
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
                     {/* Avatar */}
@@ -109,28 +99,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 100,
     },
-    header: {
-        alignItems: 'flex-end',
-        marginBottom: 20,
-    },
-    checkmarkContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#7FB3D5',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    checkmark: {
-        fontSize: 24,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
     profileCard: {
         backgroundColor: '#2D3947',
         borderRadius: 20,
         padding: 24,
         marginBottom: 20,
+        marginTop: 20,
     },
     avatarContainer: {
         alignItems: 'center',

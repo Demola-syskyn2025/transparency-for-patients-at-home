@@ -2,7 +2,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import type { AppointmentService } from '../services/appointments';
 import type { ChecklistService } from '../services/checklist';
 import type { ChecklistItem } from '../utils/checklist';
@@ -100,10 +100,6 @@ export default function HomeScreen({
     navigation.navigate('Checklist');
   };
 
-  const handleTabNavigation = (screen: string) => {
-    navigation.navigate('RootTabs', { screen });
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -114,7 +110,7 @@ export default function HomeScreen({
         locations={[0, 0.29]}
         style={styles.gradient}
       >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 90 }}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
           {/* Reminder Card */}
           <View style={styles.reminderCard}>
             {/* Reminder Header */}
@@ -206,36 +202,6 @@ export default function HomeScreen({
             </View>
           </Pressable>
         </ScrollView>
-
-        {/* Bottom Navigation Bar */}
-        <View style={styles.bottomNav}>
-          <TouchableOpacity 
-            style={styles.navButton}
-            onPress={() => handleTabNavigation('Profile')}
-          >
-            <View style={styles.profileIcon}>
-              <View style={styles.profileHead} />
-              <View style={styles.profileBody} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.navButton}
-            onPress={() => handleTabNavigation('Chat')}
-          >
-            <View style={styles.chatIconNav}>
-              <View style={styles.chatBubble} />
-              <View style={styles.chatTail} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.navButton, styles.sosButton]}
-            onPress={() => handleTabNavigation('SOS')}
-          >
-            <Text style={styles.sosText}>SOS</Text>
-          </TouchableOpacity>
-        </View>
       </LinearGradient>
     </View>
   );
@@ -480,80 +446,6 @@ const styles = StyleSheet.create({
     width: 3,
     height: 10,
     backgroundColor: '#22c55e',
-    transform: [{ rotate: '45deg' }],
-  },
-  // Bottom Navigation Styles
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: Platform.OS === 'ios' ? 90 : 70,
-    backgroundColor: '#2a3647',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 30 : 0,
-  },
-  navButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-  },
-  sosButton: {
-    backgroundColor: '#FF4444',
-  },
-  sosText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  // Profile Icon for Nav
-  profileIcon: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileHead: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#8E9BA8',
-    marginBottom: 2,
-  },
-  profileBody: {
-    width: 20,
-    height: 14,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    backgroundColor: '#8E9BA8',
-  },
-  // Chat Icon for Nav
-  chatIconNav: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  chatBubble: {
-    width: 28,
-    height: 22,
-    backgroundColor: '#8E9BA8',
-    borderRadius: 8,
-    borderBottomRightRadius: 2,
-  },
-  chatTail: {
-    width: 6,
-    height: 6,
-    backgroundColor: '#8E9BA8',
-    position: 'absolute',
-    bottom: 5,
-    right: 2,
     transform: [{ rotate: '45deg' }],
   },
 });

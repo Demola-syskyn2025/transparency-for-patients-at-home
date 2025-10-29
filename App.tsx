@@ -4,7 +4,7 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import ChatScreen from './src/screens/ChatScreen';
@@ -140,6 +140,25 @@ const checklistService = new MockChecklistService({
   ],
 });
 
+// Home Icon Component
+const HomeIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={[styles.homeIcon, focused && styles.iconFocused]}>
+      <View style={[styles.homeRoof, focused && styles.homeRoofFocused]} />
+      <View style={[styles.homeBase, focused && styles.homeBaseFocused]} />
+      <View style={[styles.homeDoor, focused && styles.homeDoorFocused]} />
+    </View>
+  </View>
+);
+
 // Profile Icon Component
 const ProfileIcon = ({ focused }: { focused: boolean }) => (
   <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
@@ -198,16 +217,9 @@ const SOSScreen = () => {
   return (
     <View style={{ flex: 1, backgroundColor: '#161B24' }}>
       <StatusBar barStyle="light-content" />
-      {/* Header with back button */}
+      {/* Header */}
       <View style={styles.sosHeader}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Home')}
-          style={styles.sosBackButton}
-        >
-          <Text style={styles.sosBackButtonText}>‹</Text>
-        </TouchableOpacity>
         <Text style={styles.sosHeaderTitle}>SOS</Text>
-        <View style={styles.sosBackButton} />
       </View>
       
       {/* Content */}
@@ -227,6 +239,7 @@ function RootTabs({ role, patientId, uid, onRoleChange }: {
 }) {
   return (
     <Tab.Navigator 
+      initialRouteName="HomeTab"
       screenOptions={{ 
         headerShown: false,
         tabBarStyle: {
@@ -239,6 +252,15 @@ function RootTabs({ role, patientId, uid, onRoleChange }: {
         tabBarShowLabel: false,
       }}
     >
+      <Tab.Screen 
+        name="HomeTab"
+        options={{
+          tabBarIcon: ({ focused }) => <HomeIcon focused={focused} />,
+        }}
+      >
+        {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
+      </Tab.Screen>
+
       <Tab.Screen 
         name="Profile"
         options={{
@@ -276,13 +298,8 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        {/* Home Screen as default (not in tabs) */}
-        <Stack.Screen name="Home" options={{ headerShown: false }}>
-          {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
-        </Stack.Screen>
-
-        {/* Tab Navigator */}
+      <Stack.Navigator initialRouteName="RootTabs">
+        {/* Tab Navigator as default - now includes Home */}
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
           {() => <RootTabs role={role} patientId={patientId} uid={uid} onRoleChange={setRole} />}
         </Stack.Screen>
@@ -340,6 +357,51 @@ const styles = StyleSheet.create({
   },
   iconFocused: {
     // Additional styling for focused state
+  },
+  // Home Icon
+  homeIcon: {
+    width: 32,
+    height: 32,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  homeRoof: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 16,
+    borderRightWidth: 16,
+    borderBottomWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#8E9BA8',
+    marginBottom: 2,
+  },
+  homeRoofFocused: {
+    borderBottomColor: '#fff',
+  },
+  homeBase: {
+    width: 24,
+    height: 16,
+    backgroundColor: '#8E9BA8',
+    borderRadius: 2,
+  },
+  homeBaseFocused: {
+    backgroundColor: '#fff',
+  },
+  homeDoor: {
+    width: 8,
+    height: 10,
+    backgroundColor: '#161B24',
+    position: 'absolute',
+    bottom: 0,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  homeDoorFocused: {
+    backgroundColor: '#2a3647',
   },
   // Profile Icon
   profileIcon: {
@@ -414,22 +476,11 @@ const styles = StyleSheet.create({
   sosHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
     paddingHorizontal: 20,
     paddingBottom: 16,
     backgroundColor: '#161B24',
-  },
-  sosBackButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sosBackButtonText: {
-    fontSize: 36,
-    color: '#fff',
-    fontWeight: '300',
   },
   sosHeaderTitle: {
     fontSize: 18,

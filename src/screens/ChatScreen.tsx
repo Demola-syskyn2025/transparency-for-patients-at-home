@@ -19,7 +19,7 @@ type SessionItem = { id: string; title: string; ended?: boolean };
 
 export default function ChatScreen() {
   const navigation = useNavigation<any>();
-  const BASE_URL = "http://your-id-address:3000";
+  const BASE_URL = "http://replacewithyouripv4:3000";
   const {
     sessionId,
     messages,
@@ -83,6 +83,11 @@ export default function ChatScreen() {
 
   const handleStartNewChat = async (sessionName: string) => {
     setNewSessionCreated(true);
+    if(!sessionName.trim()) {
+      setNewSessionCreated(false)
+      alert("Session name cannot be empty");
+      return;
+    }
     const trimmedName = sessionName.trim();
     const data = (await createSession(trimmedName)) as any;
     if (data && data.id) {
@@ -186,14 +191,7 @@ export default function ChatScreen() {
         >
           <View style={styles.sessionContainer}>
             <View style={styles.sessionHeader}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Home')}
-                style={styles.sessionBackButton}
-              >
-                <Text style={styles.sessionBackButtonText}>‹</Text>
-              </TouchableOpacity>
               <Text style={styles.headerTitle}>CHAT</Text>
-              <View style={styles.sessionBackButton} />
             </View>
 
             <Text style={styles.sectionTitle}>Choose or create a session:</Text>
@@ -267,7 +265,7 @@ export default function ChatScreen() {
 
         {/* Doctor Name Box */}
         <View style={styles.doctorBox}>
-          <Text style={styles.doctorName}>{sessionName || "Phillip Phils"}</Text>
+          <Text style={styles.doctorName}>{sessionName || ""}</Text>
         </View>
 
         {/* Messages */}
@@ -376,19 +374,8 @@ const styles = StyleSheet.create({
   sessionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-  sessionBackButton: {
-    width: 40,
-    height: 40,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sessionBackButtonText: {
-    fontSize: 36,
-    color: '#fff',
-    fontWeight: '300',
+    marginBottom: 30,
   },
   header: {
     marginBottom: 30,

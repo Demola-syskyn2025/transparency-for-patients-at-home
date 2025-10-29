@@ -1,24 +1,27 @@
+import { useNavigation } from '@react-navigation/native';
+import { Audio } from "expo-av";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  FlatList,
   ActivityIndicator,
-  TouchableOpacity,
-  SafeAreaView,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useChat } from "../services/chat";
-import Speech from "../components/appoinments/Speech";
 
 type SessionItem = { id: string; title: string; ended?: boolean };
 
 export default function ChatScreen() {
+  const navigation = useNavigation<any>();
+  const BASE_URL = "http://your-id-address:3000";
   const {
-    sessionId, // set by createSession and (ideally) by getMessages(id)
+    sessionId,
     messages,
     createSession,
     sendMessage,
@@ -26,37 +29,37 @@ export default function ChatScreen() {
     loading,
     listSessions,
     getMessages,
-    endedSessions,
-  } = useChat("http://your-ip-address:3000");
+  } = useChat(BASE_URL);
+
 
   const [sessionName, setSessionName] = useState("");
   const [text, setText] = useState("");
   const [allSessions, setAllSessions] = useState<SessionItem[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
-
-  // These help when opening an existing session
   const [loadingOldChat, setLoadingOldChat] = useState(false);
-  const [localActiveSessionId, setLocalActiveSessionId] = useState<
-    string | null
-  >(null);
+  const [localActiveSessionId, setLocalActiveSessionId] = useState<string | null>(null);
+  const [newSessionCreated, setNewSessionCreated] = useState(false);
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
 
-  // compute the actual active session id (covers the case where getMessages doesn't set sessionId)
-  const activeSessionId = sessionId || localActiveSessionId;
+  //Use to load chat
+  const activeSessionId = localActiveSessionId;
 
   const currentSessionEnded = useMemo(() => {
     if (!activeSessionId) return false;
     return !!allSessions.find((s) => s.id === activeSessionId)?.ended;
   }, [allSessions, activeSessionId]);
 
-  // --- Load sessions once ---
   useEffect(() => {
     (async () => {
       setLoadingSessions(true);
       const list = await listSessions();
+      const sid = list.map((s: SessionItem) => s.id);
       setAllSessions(list);
       setLoadingSessions(false);
     })();
-  }, []);
+  }, [newSessionCreated]);
 
   const filteredSessions = useMemo(() => {
     if (!sessionName.trim()) return allSessions;
@@ -68,213 +71,557 @@ export default function ChatScreen() {
     setLoadingOldChat(true);
     await getMessages(item.id);
     setSessionName(item.title || "");
+    setLocalActiveSessionId(item.id);
     setLoadingOldChat(false);
   };
 
   const handleBackToSessions = () => {
     setLocalActiveSessionId(null);
     setSessionName("");
+    setNewSessionCreated(false);
   };
 
-  // --- Global loading overlay when opening an old session ---
+  const handleStartNewChat = async (sessionName: string) => {
+    setNewSessionCreated(true);
+    const trimmedName = sessionName.trim();
+    const data = (await createSession(trimmedName)) as any;
+    if (data && data.id) {
+      setLocalActiveSessionId(data.id);
+      return;
+    }
+    try {
+      const list = await listSessions();
+      if (list && list.length > 0) {
+        const newSession = list.find((s: SessionItem) => s.title === sessionName) || list[list.length - 1];
+        if (newSession && newSession.id) {
+          setLocalActiveSessionId(newSession.id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to refresh sessions after creating session", err);
+    }
+  };
+
+  // Voice recording functions
+  const startRecording = async () => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Microphone permission is required");
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(newRecording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    try {
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+
+      if (uri) {
+        // Send the audio file to server for transcription
+        const formData = new FormData();
+        formData.append("audio", {
+          uri,
+          name: "audio.m4a",
+          type: "audio/mp4",
+        } as any);
+
+        const response = await fetch(`${BASE_URL}/stt/transcribe`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (data.text) {
+          // Send transcribed text as message
+          sendMessage(data.text);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to stop recording", err);
+    }
+  };
+
+  // Loading overlay
   if (loadingOldChat) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <ActivityIndicator size="large" />
-          <Text style={{ marginTop: 12 }}>Loading chat…</Text>
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#7FB3D5" />
+          <Text style={styles.loadingText}>Loading chat…</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
-  // ---------- CREATE / PICK SESSION SCREEN ----------
+  // Session selection screen
   if (!activeSessionId) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
-          <View style={{ flex: 1, padding: 20 }}>
-            <Text style={{ fontSize: 18, marginBottom: 10 }}>
-              Choose or create a session:
-            </Text>
+          <View style={styles.sessionContainer}>
+            <View style={styles.sessionHeader}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Home')}
+                style={styles.sessionBackButton}
+              >
+                <Text style={styles.sessionBackButtonText}>‹</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>CHAT</Text>
+              <View style={styles.sessionBackButton} />
+            </View>
 
-            {/* Existing sessions */}
+            <Text style={styles.sectionTitle}>Choose or create a session:</Text>
+
             {loadingSessions ? (
-              <ActivityIndicator style={{ marginVertical: 8 }} />
+              <ActivityIndicator style={{ marginVertical: 20 }} color="#7FB3D5" />
             ) : (
               <FlatList
                 data={filteredSessions}
                 keyExtractor={(item) => item.id}
-                style={{
-                  maxHeight: 240,
-                  borderWidth: 1,
-                  borderColor: "#eee",
-                  borderRadius: 8,
-                  marginBottom: 12,
-                }}
+                style={styles.sessionList}
                 keyboardShouldPersistTaps="handled"
                 ListEmptyComponent={
-                  <Text style={{ color: "#6b7280", padding: 12 }}>
-                    No previous sessions
-                  </Text>
+                  <Text style={styles.emptyText}>No previous sessions</Text>
                 }
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => openOldSession(item)}
-                    style={{
-                      paddingVertical: 10,
-                      paddingHorizontal: 12,
-                      borderBottomWidth: 1,
-                      borderBottomColor: "#eee",
-                    }}
+                    style={styles.sessionItem}
                   >
-                    <Text>
-                      {item.title || "Untitled session"}{" "}
-                      {item.ended ? "• ended" : ""}
+                    <Text style={styles.sessionItemText}>
+                      {item.title || "Untitled session"}
                     </Text>
+                    {item.ended && <Text style={styles.endedBadge}>ended</Text>}
                   </TouchableOpacity>
                 )}
               />
             )}
 
-            {/* Create new */}
             <TextInput
               value={sessionName}
               onChangeText={setSessionName}
               placeholder="e.g. Leg pain checkup"
-              style={{
-                borderWidth: 1,
-                borderColor: "#ccc",
-                borderRadius: 8,
-                padding: 10,
-                marginBottom: 12,
-              }}
+              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+              style={styles.input}
               returnKeyType="done"
-              onSubmitEditing={() => createSession(sessionName)}
+              onSubmitEditing={() => handleStartNewChat(sessionName)}
             />
 
-            <Button
-              title="Start New Chat"
-              onPress={() => createSession(sessionName)}
-            />
-            <Speech />
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => handleStartNewChat(sessionName)}
+            >
+              <Text style={styles.createButtonText}>Start New Chat</Text>
+            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     );
   }
 
-  // ---------- CHAT SCREEN ----------
+  // Chat screen
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 8,
-            }}
+        {/* Header */}
+        <View style={styles.chatHeader}>
+          <TouchableOpacity
+            onPress={handleBackToSessions}
+            style={styles.backButton}
           >
-            <TouchableOpacity
-              onPress={() => {
-                handleBackToSessions(); 
-                setSessionName(""); 
-              }}
-              style={{ marginRight: 8, padding: 4 }}
-            >
-              <Text style={{ fontSize: 20 }}>←</Text>
-            </TouchableOpacity>
+            <Text style={styles.backButtonText}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.chatHeaderTitle}>CHAT</Text>
+        </View>
 
-            <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-              Session: {sessionName}
-            </Text>
-          </View>
+        {/* Doctor Name Box */}
+        <View style={styles.doctorBox}>
+          <Text style={styles.doctorName}>{sessionName || "Phillip Phils"}</Text>
+        </View>
 
-          <FlatList
-            data={messages}
-            keyExtractor={(item) => item.id} // <--- use stable ids
-            renderItem={({ item }) => (
-              <Text
-                style={{
-                  marginVertical: 4,
-                  alignSelf: item.role === "user" ? "flex-end" : "flex-start",
-                  backgroundColor: item.role === "user" ? "#6366F1" : "#1F2937",
-                  color: "white",
-                  padding: 10,
-                  borderRadius: 10,
-                  maxWidth: "85%",
-                }}
+        {/* Messages */}
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messagesList}
+          renderItem={({ item }) => (
+            <View style={styles.messageWrapper}>
+              <View
+                style={[
+                  styles.messageContainer,
+                  item.role === "user" ? styles.userMessage : styles.doctorMessage,
+                ]}
               >
-                {item.text}
-              </Text>
-            )}
+                <Text style={styles.messageText}>{item.text}</Text>
+              </View>
+              {item.role === "user" && (
+                <Text style={styles.messageTime}>
+                  Sent {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })} using speech to text{'\n'}
+                  <Text style={styles.summaryLink}>Get summary</Text>
+                </Text>
+              )}
+              {item.role !== "user" && (
+                <Text style={styles.messageTimestamp}>
+                  {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        {loading && (
+          <ActivityIndicator
+            style={{ marginVertical: 8 }}
+            color="#7FB3D5"
           />
+        )}
 
-          {loading && <ActivityIndicator style={{ marginVertical: 8 }} />}
-
-          {!currentSessionEnded && (
-            <View
-              style={{
-                paddingTop: 8,
-                paddingBottom: 16,
-                backgroundColor: "#fff",
-              }}
-            >
+        {!currentSessionEnded && (
+          <View style={styles.inputContainer}>
+            {/* Text Input */}
+            <View style={styles.inputWrapper}>
               <TextInput
                 value={text}
                 onChangeText={setText}
                 placeholder="Type your message"
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#ccc",
-                  borderRadius: 8,
-                  padding: 10,
-                  marginBottom: 10,
-                }}
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                style={styles.textInput}
                 multiline
-                returnKeyType="send"
-                onSubmitEditing={() => {
-                  if (!text.trim()) return;
-                  sendMessage(text);
-                  setText("");
-                }}
+                maxLength={500}
               />
-
-              <Button
-                title="Send"
-                onPress={() => {
-                  if (!text.trim()) return;
-                  sendMessage(text);
-                  setText("");
-                }}
-              />
-
-              <View style={{ marginTop: 10 }}>
-                <Button
-                  title="End Session"
-                  color="red"
+              {text.trim().length > 0 && (
+                <TouchableOpacity
+                  style={styles.sendButton}
                   onPress={() => {
-                    endSession(sessionId!);
-                    setLocalActiveSessionId(null);
-                    setSessionName("");
+                    if (text.trim()) {
+                      sendMessage(text);
+                      setText("");
+                    }
                   }}
-                />
-              </View>
+                >
+                  <Text style={styles.sendButtonText}>Send</Text>
+                </TouchableOpacity>
+              )}
             </View>
-          )}
-        </View>
+            
+            {/* Mic Button */}
+            <TouchableOpacity
+              style={[styles.micButton, isRecording && styles.micButtonActive]}
+              onPress={isRecording ? stopRecording : startRecording}
+            >
+              <View style={styles.micIcon}>
+                <View style={styles.micBody} />
+                <View style={styles.micBase} />
+                <View style={styles.micStand} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#161B24',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 12,
+  },
+  sessionContainer: {
+    flex: 1,
+    padding: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
+  },
+  sessionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 30,
+  },
+  sessionBackButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sessionBackButtonText: {
+    fontSize: 36,
+    color: '#fff',
+    fontWeight: '300',
+  },
+  header: {
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 2,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 16,
+    fontWeight: '600',
+  },
+  sessionList: {
+    maxHeight: 240,
+    backgroundColor: 'rgba(42, 54, 71, 0.6)',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  sessionItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sessionItemText: {
+    color: '#fff',
+    fontSize: 15,
+  },
+  endedBadge: {
+    color: '#ef4444',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  emptyText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    padding: 20,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: 'rgba(42, 54, 71, 0.6)',
+    borderRadius: 12,
+    padding: 14,
+    color: '#fff',
+    fontSize: 15,
+    marginBottom: 16,
+  },
+  createButton: {
+    backgroundColor: '#7FB3D5',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  createButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  // Chat screen styles
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: '#161B24',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  backButtonText: {
+    fontSize: 36,
+    color: '#fff',
+    fontWeight: '300',
+  },
+  chatHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 2,
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 48, // Balance the back button
+  },
+  doctorBox: {
+    backgroundColor: '#2D3947',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  doctorName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#7FB3D5',
+  },
+  messagesList: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  messageWrapper: {
+    marginBottom: 16,
+  },
+  messageContainer: {
+    maxWidth: '85%',
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 4,
+  },
+  userMessage: {
+    backgroundColor: '#6366F1',
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
+  },
+  doctorMessage: {
+    backgroundColor: '#2D3947',
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    color: '#fff',
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  messageTime: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.5)',
+    alignSelf: 'flex-end',
+    marginTop: 2,
+  },
+  messageTimestamp: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  summaryLink: {
+    color: '#7FB3D5',
+    textDecorationLine: 'underline',
+  },
+  inputContainer: {
+    backgroundColor: '#161B24',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: 'rgba(42, 54, 71, 0.6)',
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 48,
+  },
+  textInput: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 15,
+    maxHeight: 100,
+    paddingVertical: 8,
+  },
+  sendButton: {
+    backgroundColor: '#7FB3D5',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  micButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#7FB3D5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#7FB3D5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  micButtonActive: {
+    backgroundColor: '#ef4444',
+    shadowColor: '#ef4444',
+  },
+  micIcon: {
+    width: 24,
+    height: 32,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  micBody: {
+    width: 14,
+    height: 20,
+    backgroundColor: '#fff',
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  micBase: {
+    width: 18,
+    height: 3,
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    marginTop: 2,
+  },
+  micStand: {
+    width: 2,
+    height: 6,
+    backgroundColor: '#fff',
+    marginTop: -3,
+  },
+});

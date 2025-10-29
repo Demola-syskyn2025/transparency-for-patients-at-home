@@ -1,13 +1,16 @@
 // App.tsx
-import React, { useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, Switch } from 'react-native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import HomeScreen from './src/screens/HomeScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import { MockAppointmentService } from './src/services/appointments';
 import type { Appointment, ChatMessage } from './src/utils/types';
 
@@ -27,7 +30,7 @@ const initialAppointments: Record<string, Appointment[]> = {
       id: 'appt-1',
       patientId: PATIENT_ID,
       title: 'Nurse home visit',
-      startAt: '2025-10-05T09:00:00.000Z',
+      startAt: '2025-12T09:00:00.000Z',
       endAt: '2025-10-05T09:30:00.000Z',
       location: 'Home',
       notes: 'Check wound & vitals',
@@ -137,59 +140,173 @@ const checklistService = new MockChecklistService({
   ],
 });
 
-function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patientId: string; uid: string }) {
+// Profile Icon Component
+const ProfileIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={[styles.profileIcon, focused && styles.iconFocused]}>
+      <View style={[styles.profileHead, focused && styles.profileHeadFocused]} />
+      <View style={[styles.profileBody, focused && styles.profileBodyFocused]} />
+    </View>
+  </View>
+);
+
+// Chat Icon Component
+const ChatIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={[styles.chatIcon, focused && styles.iconFocused]}>
+      <View style={[styles.chatBubble, focused && styles.chatBubbleFocused]} />
+      <View style={[styles.chatTail, focused && styles.chatTailFocused]} />
+    </View>
+  </View>
+);
+
+// SOS Icon Component
+const SOSIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.tabIconContainer, styles.sosIconContainer, focused && styles.tabIconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <Text style={[styles.sosText, focused && styles.sosTextFocused]}>SOS</Text>
+  </View>
+);
+
+// Dummy SOS Screen
+const SOSScreen = () => {
+  const navigation = useNavigation<any>();
+  
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Home">
-        {() => <HomeScreen role={role} patientId={patientId} />}
+    <View style={{ flex: 1, backgroundColor: '#161B24' }}>
+      <StatusBar barStyle="light-content" />
+      {/* Header with back button */}
+      <View style={styles.sosHeader}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Home')}
+          style={styles.sosBackButton}
+        >
+          <Text style={styles.sosBackButtonText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.sosHeaderTitle}>SOS</Text>
+        <View style={styles.sosBackButton} />
+      </View>
+      
+      {/* Content */}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>SOS Emergency</Text>
+        <Text style={{ color: '#fff', fontSize: 16, marginTop: 10 }}>Emergency contact feature</Text>
+      </View>
+    </View>
+  );
+};
+
+function RootTabs({ role, patientId, uid, onRoleChange }: { 
+  role: 'patient' | 'family'; 
+  patientId: string; 
+  uid: string;
+  onRoleChange: (role: 'patient' | 'family') => void;
+}) {
+  return (
+    <Tab.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#2a3647',
+          borderTopWidth: 0,
+          height: Platform.OS === 'ios' ? 90 : 70,
+          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+          paddingTop: 10,
+        },
+        tabBarShowLabel: false,
+      }}
+    >
+      <Tab.Screen 
+        name="Profile"
+        options={{
+          tabBarIcon: ({ focused }) => <ProfileIcon focused={focused} />,
+        }}
+      >
+        {() => <ProfileScreen role={role} onRoleChange={onRoleChange} />}
       </Tab.Screen>
 
-      <Tab.Screen name="Appointments">
-        {() => (
-          <AppointmentsScreen
-            role={role}
-            patientId={patientId}
-            service={apptService}
-            uid={uid}
-          />
-        )}
-      </Tab.Screen>
-
-      {/* NEW: Checklist tab (patient daily tasks) */}
-      <Tab.Screen name="Checklist">
-        {() => (
-          <ChecklistScreen
-            patientId={patientId}
-            uid={uid}
-            service={checklistService}
-            role={role}
-          />
-        )}
-      </Tab.Screen>
-      <Tab.Screen name="Chat">
+      <Tab.Screen 
+        name="Chat"
+        options={{
+          tabBarIcon: ({ focused }) => <ChatIcon focused={focused} />,
+        }}
+      >
         {() => <ChatScreen />}
+      </Tab.Screen>
+
+      <Tab.Screen 
+        name="SOS"
+        options={{
+          tabBarIcon: ({ focused }) => <SOSIcon focused={focused} />,
+        }}
+      >
+        {() => <SOSScreen />}
       </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
 export default function App() {
-  const [role, setRole] = useState<'patient' | 'family'>('family'); // mở app là Family luôn
+  const [role, setRole] = useState<'patient' | 'family'>('patient'); // Always start as Patient
   const [uid] = useState<string>('demo-user');
   const patientId = PATIENT_ID;
 
   return (
     <NavigationContainer>
-      {/* Toggle vai trò để demo */}
-      <View style={{ height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ marginRight: 8 }}>Patient</Text>
-        <Switch value={role === 'family'} onValueChange={(v) => setRole(v ? 'family' : 'patient')} />
-        <Text style={{ marginLeft: 8 }}>Family</Text>
-      </View>
+      <Stack.Navigator initialRouteName="Home">
+        {/* Home Screen as default (not in tabs) */}
+        <Stack.Screen name="Home" options={{ headerShown: false }}>
+          {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
+        </Stack.Screen>
 
-      <Stack.Navigator>
+        {/* Tab Navigator */}
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
-          {() => <RootTabs role={role} patientId={patientId} uid={uid} />}
+          {() => <RootTabs role={role} patientId={patientId} uid={uid} onRoleChange={setRole} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="PatientAppointment" options={{ headerShown: false }}>
+          {() => <PatientAppointmentScreen patientId={patientId} service={apptService} />}
+        </Stack.Screen>
+        <Stack.Screen name="Appointments" options={{ headerShown: false }}>
+          {() => (
+            <AppointmentsScreen
+              role={role}
+              patientId={patientId}
+              service={apptService}
+              uid={uid} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Checklist" options={{ headerShown: false }}>
+          {() => (
+            <ChecklistScreen
+              patientId={patientId}
+              uid={uid}
+              service={checklistService}
+              role={role} />
+          )}
         </Stack.Screen>
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>
           {(props) => (
@@ -208,3 +325,116 @@ export default function App() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  tabIconFocused: {
+    // Gradient will be applied via LinearGradient component
+  },
+  iconFocused: {
+    // Additional styling for focused state
+  },
+  // Profile Icon
+  profileIcon: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileHead: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#8E9BA8',
+    marginBottom: 2,
+  },
+  profileHeadFocused: {
+    backgroundColor: '#fff',
+  },
+  profileBody: {
+    width: 20,
+    height: 14,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: '#8E9BA8',
+  },
+  profileBodyFocused: {
+    backgroundColor: '#fff',
+  },
+  // Chat Icon
+  chatIcon: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  chatBubble: {
+    width: 28,
+    height: 22,
+    backgroundColor: '#8E9BA8',
+    borderRadius: 8,
+    borderBottomRightRadius: 2,
+  },
+  chatBubbleFocused: {
+    backgroundColor: '#fff',
+  },
+  chatTail: {
+    width: 6,
+    height: 6,
+    backgroundColor: '#8E9BA8',
+    position: 'absolute',
+    bottom: 5,
+    right: 2,
+    transform: [{ rotate: '45deg' }],
+  },
+  chatTailFocused: {
+    backgroundColor: '#fff',
+  },
+  // SOS Icon
+  sosIconContainer: {
+    backgroundColor: '#FF4444',
+  },
+  sosText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  sosTextFocused: {
+    color: '#fff',
+  },
+  // SOS Screen Styles
+  sosHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: '#161B24',
+  },
+  sosBackButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sosBackButtonText: {
+    fontSize: 36,
+    color: '#fff',
+    fontWeight: '300',
+  },
+  sosHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 2,
+  },
+});

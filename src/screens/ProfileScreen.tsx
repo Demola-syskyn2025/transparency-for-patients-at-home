@@ -78,6 +78,14 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
                         <Text style={styles.menuButtonText}>Smart Health Devices</Text>
                         <Text style={styles.menuButtonArrow}>›</Text>
                     </Pressable>
+
+                    <Pressable 
+                        style={styles.menuButton}
+                        onPress={() => navigation.navigate('AppointmentHistory')}
+                    >
+                        <Text style={styles.menuButtonText}>Appointment History</Text>
+                        <Text style={styles.menuButtonArrow}>›</Text>
+                    </Pressable>
                 </View>
 
                 {/* Role Switcher at Bottom */}

@@ -11,6 +11,7 @@ import ChatScreen from './src/screens/ChatScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
 import { MockAppointmentService } from './src/services/appointments';
 import type { Appointment, ChatMessage } from './src/utils/types';
 
@@ -349,6 +350,14 @@ export default function App() {
               uid={uid}
               service={checklistService}
               role={role} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="AppointmentHistory" options={{ headerShown: false }}>
+          {() => (
+            <AppointmentHistoryScreen
+              patientId={patientId}
+              service={apptService}
+            />
           )}
         </Stack.Screen>
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>

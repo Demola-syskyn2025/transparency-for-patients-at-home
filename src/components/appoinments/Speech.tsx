@@ -1,7 +1,7 @@
 // STTGemini.tsx
-import React, { useRef, useState } from "react";
-import { View, Button, Text } from "react-native";
 import { Audio } from "expo-av";
+import React, { useRef, useState } from "react";
+import { Button, Text, View } from "react-native";
 
 export default function STTGemini() {
   const recRef = useRef<Audio.Recording | null>(null);
@@ -9,7 +9,7 @@ export default function STTGemini() {
   const [text, setText] = useState("");
   const [summaryText, setSummaryText] = useState("");
 
-  const BASE_URL = "http://your-ip-address:3000";
+  const BASE_URL = "http://replacewithyouripv4:3000";
 
   const startRecording = async () => {
     const { status } = await Audio.requestPermissionsAsync();

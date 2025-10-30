@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import type { AppointmentService } from '../services/appointments';
 import type { Appointment } from '../utils/types';
+import StatusBadge from '../components/appoinments/StatusBadge';
 
 // Custom Appointment Icon Component (based on SVG design)
 const AppointmentIcon = () => (
@@ -181,6 +182,12 @@ export default function PatientAppointmentScreen({
 
   const calendarDays = viewMode === 'week' ? generateWeekDays() : generateMonthDays();
   const phoneNumber = displayedAppt?.assignedStaff?.[0]?.phone;
+  const etaStart = displayedAppt?.etaStart ? new Date(displayedAppt.etaStart) : null;
+  const etaEnd = displayedAppt?.etaEnd ? new Date(displayedAppt.etaEnd) : null;
+  const etaUpdatedAt = displayedAppt?.etaUpdatedAt ? new Date(displayedAppt.etaUpdatedAt) : null;
+  const apptEndRef = displayedAppt?.endAt ? new Date(displayedAppt.endAt) : apptDate;
+  const isPast = apptEndRef.getTime() < Date.now();
+  const showCompleted = isPast && (displayedAppt?.status === 'scheduled' || displayedAppt?.status === 'rescheduled');
 
   return (
     <View style={styles.container}>
@@ -279,6 +286,28 @@ export default function PatientAppointmentScreen({
             {apptDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
           </Text>
         </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Status:</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ marginRight: 8 }}>
+              <StatusBadge status={displayedAppt.status ?? 'scheduled'} />
+            </View>
+            {showCompleted ? <StatusBadge status={'completed'} /> : null}
+          </View>
+        </View>
+
+        {etaStart && etaEnd && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>ETA:</Text>
+            <Text style={styles.detailValue}>
+              {etaStart.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+              –
+              {etaEnd.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+              {etaUpdatedAt ? `  (updated ${etaUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : ''}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Type:</Text>

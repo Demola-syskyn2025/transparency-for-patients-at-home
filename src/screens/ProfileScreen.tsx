@@ -16,46 +16,38 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                <Text style={styles.appName}>HOMECARE</Text>
+                {/* Header with checkmark */}
+                <View style={styles.header}>
+                    <Pressable 
+                        style={styles.checkmarkContainer}
+                        onPress={() => navigation.navigate('Home')}
+                    >
+                        <Text style={styles.checkmark}>✓</Text>
+                    </Pressable>
+                </View>
+
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
-                    {/* Avatar */}
-                    <View style={styles.avatarContainer}>
-                        <View style={styles.avatar}>
-                            <View style={styles.avatarHead} />
-                            <View style={styles.avatarBody} />
-                        </View>
-                    </View>
+                    {role === 'patient' && (
+                        <>
+                            <View style={styles.avatarContainer}>
+                                <View style={styles.avatar}>
+                                    <View style={styles.avatarHead} />
+                                    <View style={styles.avatarBody} />
+                                </View>
+                            </View>
+                            <Text style={styles.name}>Shai Alexander</Text>
+                        </>
+                    )}
 
-                    {/* Name */}
-                    <Text style={styles.name}>Shai Alexander</Text>
-
-                    {/* Info Grid */}
-                    <View style={styles.infoGrid}>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Age:</Text>
-                            <Text style={styles.infoValue}>60</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Date of Birth:</Text>
-                            <Text style={styles.infoValue}>25/08/1965</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Sex:</Text>
-                            <Text style={styles.infoValue}>Male</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Blood Type:</Text>
-                            <Text style={styles.infoValue}>AB</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Phone number:</Text>
-                            <Text style={styles.infoValue}>0441234456</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Health Status:</Text>
-                            <Text style={styles.healthStatus}>Healthy</Text>
-                        </View>
-                    </View>
+                    <Pressable 
+                        style={styles.menuButton}
+                        onPress={() => navigation.navigate('ProfileInfo')}
+                    >
+                        <Text style={styles.menuButtonText}>{role === 'patient' ? 'My Info' : 'My Parent Info'}</Text>
+                        <Text style={styles.menuButtonArrow}>›</Text>
+                    </Pressable>
 
                     {/* Medical ID Button */}
                     <Pressable style={styles.menuButton}>
@@ -63,9 +55,24 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
                         <Text style={styles.menuButtonArrow}>›</Text>
                     </Pressable>
 
-                    {/* Smart Health Devices Button */}
                     <Pressable style={styles.menuButton}>
                         <Text style={styles.menuButtonText}>Smart Health Devices</Text>
+                        <Text style={styles.menuButtonArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable 
+                        style={styles.menuButton}
+                        onPress={() => navigation.navigate('CareVisitSummaries')}
+                    >
+                        <Text style={styles.menuButtonText}>Homecare Visit Summaries</Text>
+                        <Text style={styles.menuButtonArrow}>›</Text>
+                    </Pressable>
+
+                    <Pressable 
+                        style={styles.menuButton}
+                        onPress={() => navigation.navigate('AppointmentHistory')}
+                    >
+                        <Text style={styles.menuButtonText}>Appointment History</Text>
                         <Text style={styles.menuButtonArrow}>›</Text>
                     </Pressable>
                 </View>
@@ -99,12 +106,28 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 100,
     },
+    header: {
+        alignItems: 'flex-end',
+        marginBottom: 20,
+    },
+    checkmarkContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#7FB3D5',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkmark: {
+        fontSize: 24,
+        color: '#fff',
+        fontWeight: 'bold',
+    },
     profileCard: {
         backgroundColor: '#2D3947',
         borderRadius: 20,
         padding: 24,
         marginBottom: 20,
-        marginTop: 20,
     },
     avatarContainer: {
         alignItems: 'center',
@@ -195,5 +218,13 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginHorizontal: 12,
         fontWeight: '500',
+    },
+    appName: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#fff',
+        textAlign: 'center',
+        letterSpacing: 2,
+        marginBottom: 10,
     },
 });

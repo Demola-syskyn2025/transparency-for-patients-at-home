@@ -25,6 +25,12 @@ export type AppointmentStatus =
   | 'completed'
   | 'cancelled';
 
+export interface AppointmentStatusChange {
+  at: ISODate;
+  status: AppointmentStatus;
+  reason?: string;
+}
+
 export interface Appointment {
   id: string;
   patientId: string;
@@ -43,5 +49,13 @@ export interface Appointment {
 
   // NEW: nhân sự phụ trách
   assignedStaff?: StaffRef[];
+
+  // ETA window and updates
+  etaStart?: ISODate;
+  etaEnd?: ISODate;
+  etaUpdatedAt?: ISODate;
+
+  // Status change timeline
+  statusHistory?: AppointmentStatusChange[];
 }
 

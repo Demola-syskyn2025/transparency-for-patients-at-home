@@ -4,19 +4,25 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ProfileInfoScreen from './src/screens/ProfileInfoScreen';
+import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
+import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
+import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen';
+import ChecklistScreen from './src/screens/ChecklistScreen';
 import { MockAppointmentService } from './src/services/appointments';
+import { MockChecklistService } from './src/services/checklist';
+import { MockVisitSummaryService } from './src/services/visitSummaries';
 import type { Appointment, ChatMessage } from './src/utils/types';
 
 // NEW: Checklist
-import ChecklistScreen from './src/screens/ChecklistScreen';
-import { MockChecklistService } from './src/services/checklist';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -30,7 +36,7 @@ const initialAppointments: Record<string, Appointment[]> = {
       id: 'appt-1',
       patientId: PATIENT_ID,
       title: 'Nurse home visit',
-      startAt: '2025-12T09:00:00.000Z',
+      startAt: '2025-10-05T09:00:00.000Z',
       endAt: '2025-10-05T09:30:00.000Z',
       location: 'Home',
       notes: 'Check wound & vitals',
@@ -40,6 +46,12 @@ const initialAppointments: Record<string, Appointment[]> = {
       assignedStaff: [
         { id: 'doc-1', name: 'Dr. Anna Virtanen', role: 'doctor', phone: '+358 40 123 4567' },
         { id: 'nurse-1', name: 'Mika Korhonen', role: 'nurse', phone: '+358 40 765 4321' },
+      ],
+      etaStart: '2025-10-05T08:50:00.000Z',
+      etaEnd: '2025-10-05T09:10:00.000Z',
+      etaUpdatedAt: '2025-10-05T08:30:00.000Z',
+      statusHistory: [
+        { at: '2025-10-01T12:00:10.000Z', status: 'scheduled' },
       ],
     },
     {
@@ -56,6 +68,13 @@ const initialAppointments: Record<string, Appointment[]> = {
       assignedStaff: [
         { id: 'doc-2', name: 'Dr. Juhani Mäkinen', role: 'doctor', phone: '+358 50 222 3344' },
       ],
+      etaStart: '2025-10-07T13:45:00.000Z',
+      etaEnd: '2025-10-07T14:15:00.000Z',
+      etaUpdatedAt: '2025-10-07T12:30:00.000Z',
+      statusHistory: [
+        { at: '2025-10-01T12:05:10.000Z', status: 'scheduled' },
+        { at: '2025-10-06T17:00:00.000Z', status: 'rescheduled', reason: 'Doctor reassigned to acute case' },
+      ],
     },
     {
       id: 'appt-3',
@@ -70,17 +89,154 @@ const initialAppointments: Record<string, Appointment[]> = {
         { id: 'doc-1', name: 'Dr. Anna Virtanen', role: 'doctor', phone: '+358 40 123 4567' },
         { id: 'nurse-2', name: 'Sara Laine', role: 'nurse' },
       ],
+      statusHistory: [
+        { at: '2025-10-02T09:00:10.000Z', status: 'scheduled' },
+        { at: '2025-10-05T08:00:00.000Z', status: 'cancelled', reason: 'Patient requested to cancel' },
+      ],
+    },
+    {
+      id: 'appt-4',
+      patientId: PATIENT_ID,
+      title: 'Physio home visit',
+      startAt: '2025-11-10T10:30:00.000Z',
+      location: 'Home',
+      notes: 'Mobility exercises and assessment',
+      createdBy: 'system',
+      createdAt: '2025-11-01T12:00:00.000Z',
+      status: 'scheduled',
+      assignedStaff: [
+        { id: 'nurse-2', name: 'Sara Laine', role: 'nurse' },
+      ],
+      etaStart: '2025-11-10T10:20:00.000Z',
+      etaEnd: '2025-11-10T10:40:00.000Z',
+      etaUpdatedAt: '2025-11-10T09:45:00.000Z',
+      statusHistory: [
+        { at: '2025-11-01T12:00:10.000Z', status: 'scheduled' },
+      ],
+    },
+    {
+      id: 'appt-5',
+      patientId: PATIENT_ID,
+      title: 'Lab sample pickup',
+      startAt: '2025-11-22T08:00:00.000Z',
+      location: 'Home',
+      notes: 'Fasting blood sample',
+      createdBy: 'system',
+      createdAt: '2025-11-05T09:00:00.000Z',
+      status: 'scheduled',
+      assignedStaff: [
+        { id: 'emt-1', name: 'Petri Niemi', role: 'paramedic', phone: '+358 44 111 2222' },
+      ],
+      etaStart: '2025-11-22T07:50:00.000Z',
+      etaEnd: '2025-11-22T08:10:00.000Z',
+      etaUpdatedAt: '2025-11-22T07:30:00.000Z',
+      statusHistory: [
+        { at: '2025-11-05T09:00:10.000Z', status: 'scheduled' },
+      ],
+    },
+    {
+      id: 'appt-6',
+      patientId: PATIENT_ID,
+      title: 'Doctor follow-up (video)',
+      startAt: '2025-12-05T13:00:00.000Z',
+      location: 'Video call',
+      notes: 'Review pain management and lab results',
+      createdBy: 'system',
+      createdAt: '2025-11-25T10:00:00.000Z',
+      status: 'rescheduled',
+      reasonForChange: 'Clinic schedule change',
+      assignedStaff: [
+        { id: 'doc-2', name: 'Dr. Juhani Mäkinen', role: 'doctor', phone: '+358 50 222 3344' },
+      ],
+      etaStart: '2025-12-05T12:55:00.000Z',
+      etaEnd: '2025-12-05T13:10:00.000Z',
+      etaUpdatedAt: '2025-12-05T12:00:00.000Z',
+      statusHistory: [
+        { at: '2025-11-25T10:00:10.000Z', status: 'scheduled' },
+        { at: '2025-12-03T09:00:00.000Z', status: 'rescheduled', reason: 'Clinic schedule change' },
+      ],
+    },
+    {
+      id: 'appt-7',
+      patientId: PATIENT_ID,
+      title: 'Wound care',
+      startAt: '2025-12-18T09:30:00.000Z',
+      location: 'Home',
+      notes: 'Dressing change and inspection',
+      createdBy: 'system',
+      createdAt: '2025-12-01T08:30:00.000Z',
+      status: 'scheduled',
+      assignedStaff: [
+        { id: 'nurse-1', name: 'Mika Korhonen', role: 'nurse', phone: '+358 40 765 4321' },
+      ],
+      etaStart: '2025-12-18T09:20:00.000Z',
+      etaEnd: '2025-12-18T09:40:00.000Z',
+      etaUpdatedAt: '2025-12-18T08:50:00.000Z',
+      statusHistory: [
+        { at: '2025-12-01T08:30:10.000Z', status: 'scheduled' },
+      ],
     },
   ],
 };
 
 const initialThreads: Record<string, ChatMessage[]> = {
   'appt-1': [
-    { id: 'm1', apptId: 'appt-1', author: 'system', text: 'Appointment created', at: '2025-10-01T12:00:10.000Z' },
-    { id: 'm2', apptId: 'appt-1', author: 'staff', text: 'We will bring dressing kit.', at: '2025-10-01T16:30:00.000Z' },
+    { id: 'a1-m1', apptId: 'appt-1', author: 'system', text: 'Appointment created', at: '2025-10-01T12:00:10.000Z' },
+    { id: 'a1-m2', apptId: 'appt-1', author: 'staff', text: 'We will bring dressing kit.', at: '2025-10-01T16:30:00.000Z' },
+    { id: 'a1-m3', apptId: 'appt-1', author: 'family', text: 'Please confirm parking info near our entrance.', at: '2025-10-04T10:00:00.000Z' },
+    { id: 'a1-m4', apptId: 'appt-1', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-04T10:00:30.000Z' },
+    { id: 'a1-m5', apptId: 'appt-1', author: 'system', text: 'Staff en route', at: '2025-10-05T08:20:00.000Z' },
+    { id: 'a1-m6', apptId: 'appt-1', author: 'system', text: 'ETA updated to 2025-10-05 08:50–09:10', at: '2025-10-05T08:30:00.000Z' },
+    { id: 'a1-m7', apptId: 'appt-1', author: 'system', text: 'Staff arrived', at: '2025-10-05T08:58:00.000Z' },
+    { id: 'a1-m8', apptId: 'appt-1', author: 'system', text: 'Appointment completed', at: '2025-10-05T09:30:00.000Z' },
   ],
   'appt-2': [
-    { id: 'm3', apptId: 'appt-2', author: 'system', text: 'Appointment created', at: '2025-10-01T12:05:10.000Z' },
+    { id: 'a2-m1', apptId: 'appt-2', author: 'system', text: 'Appointment created', at: '2025-10-01T12:05:10.000Z' },
+    { id: 'a2-m2', apptId: 'appt-2', author: 'system', text: 'Rescheduled on 2025-10-06 17:00 to 2025-10-07 14:00 (video).', at: '2025-10-06T17:00:00.000Z' },
+    { id: 'a2-m3', apptId: 'appt-2', author: 'family', text: 'Can we extend the consultation to 30 minutes?', at: '2025-10-06T17:10:00.000Z' },
+    { id: 'a2-m4', apptId: 'appt-2', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-06T17:10:30.000Z' },
+    { id: 'a2-m5', apptId: 'appt-2', author: 'staff', text: 'Yes, booked for 30 minutes.', at: '2025-10-06T18:00:00.000Z' },
+    { id: 'a2-m6', apptId: 'appt-2', author: 'system', text: 'Staff ready to start video', at: '2025-10-07T13:55:00.000Z' },
+    { id: 'a2-m7', apptId: 'appt-2', author: 'system', text: 'Appointment completed', at: '2025-10-07T14:30:00.000Z' },
+  ],
+  'appt-3': [
+    { id: 'a3-m1', apptId: 'appt-3', author: 'system', text: 'Appointment created', at: '2025-10-02T09:00:10.000Z' },
+    { id: 'a3-m2', apptId: 'appt-3', author: 'family', text: 'Please cancel this appointment.', at: '2025-10-05T07:55:00.000Z' },
+    { id: 'a3-m3', apptId: 'appt-3', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-05T07:55:30.000Z' },
+    { id: 'a3-m4', apptId: 'appt-3', author: 'system', text: 'Appointment cancelled', at: '2025-10-05T08:00:00.000Z' },
+  ],
+  'appt-4': [
+    { id: 'a4-m1', apptId: 'appt-4', author: 'system', text: 'Appointment created', at: '2025-11-01T12:00:10.000Z' },
+    { id: 'a4-m2', apptId: 'appt-4', author: 'staff', text: 'Please have your walking aid ready.', at: '2025-11-07T09:00:00.000Z' },
+    { id: 'a4-m3', apptId: 'appt-4', author: 'family', text: 'Can you also check knee pain during the visit?', at: '2025-11-09T18:00:00.000Z' },
+    { id: 'a4-m4', apptId: 'appt-4', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-11-09T18:00:30.000Z' },
+    { id: 'a4-m5', apptId: 'appt-4', author: 'system', text: 'Staff en route', at: '2025-11-10T10:00:00.000Z' },
+    { id: 'a4-m6', apptId: 'appt-4', author: 'system', text: 'Staff arrived', at: '2025-11-10T10:28:00.000Z' },
+  ],
+  'appt-5': [
+    { id: 'a5-m1', apptId: 'appt-5', author: 'system', text: 'Appointment created', at: '2025-11-05T09:00:10.000Z' },
+    { id: 'a5-m2', apptId: 'appt-5', author: 'staff', text: 'Reminder: Please fast overnight. Water is allowed.', at: '2025-11-21T17:00:00.000Z' },
+    { id: 'a5-m3', apptId: 'appt-5', author: 'family', text: 'Is water allowed before the sample?', at: '2025-11-21T20:00:00.000Z' },
+    { id: 'a5-m4', apptId: 'appt-5', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-11-21T20:00:30.000Z' },
+    { id: 'a5-m5', apptId: 'appt-5', author: 'staff', text: 'Yes, water is fine before the sample.', at: '2025-11-21T20:30:00.000Z' },
+    { id: 'a5-m6', apptId: 'appt-5', author: 'system', text: 'Staff en route', at: '2025-11-22T07:30:00.000Z' },
+    { id: 'a5-m7', apptId: 'appt-5', author: 'system', text: 'Staff arrived', at: '2025-11-22T07:52:00.000Z' },
+  ],
+  'appt-6': [
+    { id: 'a6-m1', apptId: 'appt-6', author: 'system', text: 'Appointment created', at: '2025-11-25T10:00:10.000Z' },
+    { id: 'a6-m2', apptId: 'appt-6', author: 'system', text: 'Rescheduled on 2025-12-03 09:00 due to clinic schedule change.', at: '2025-12-03T09:00:00.000Z' },
+    { id: 'a6-m3', apptId: 'appt-6', author: 'family', text: 'Please include my daughter in the video call.', at: '2025-12-03T12:00:00.000Z' },
+    { id: 'a6-m4', apptId: 'appt-6', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-12-03T12:00:30.000Z' },
+    { id: 'a6-m5', apptId: 'appt-6', author: 'staff', text: 'Meeting link sent to registered emails.', at: '2025-12-05T12:15:00.000Z' },
+    { id: 'a6-m6', apptId: 'appt-6', author: 'system', text: 'Ready to start video', at: '2025-12-05T12:55:00.000Z' },
+  ],
+  'appt-7': [
+    { id: 'a7-m1', apptId: 'appt-7', author: 'system', text: 'Appointment created', at: '2025-12-01T08:30:10.000Z' },
+    { id: 'a7-m2', apptId: 'appt-7', author: 'family', text: 'Prefer morning before 10:00 if possible.', at: '2025-12-10T11:00:00.000Z' },
+    { id: 'a7-m3', apptId: 'appt-7', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-12-10T11:00:30.000Z' },
+    { id: 'a7-m4', apptId: 'appt-7', author: 'staff', text: 'Noted; current plan is 09:30.', at: '2025-12-10T12:00:00.000Z' },
+    { id: 'a7-m5', apptId: 'appt-7', author: 'system', text: 'Staff en route', at: '2025-12-18T08:50:00.000Z' },
+    { id: 'a7-m6', apptId: 'appt-7', author: 'system', text: 'Staff arrived', at: '2025-12-18T09:22:00.000Z' },
   ],
 };
 
@@ -140,24 +296,17 @@ const checklistService = new MockChecklistService({
   ],
 });
 
-// Home Icon Component
-const HomeIcon = ({ focused }: { focused: boolean }) => (
-  <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
-    {focused && (
-      <LinearGradient
-        colors={['#A9C6CE', '#6294A1']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-    )}
-    <View style={[styles.homeIcon, focused && styles.iconFocused]}>
-      <View style={[styles.homeRoof, focused && styles.homeRoofFocused]} />
-      <View style={[styles.homeBase, focused && styles.homeBaseFocused]} />
-      <View style={[styles.homeDoor, focused && styles.homeDoorFocused]} />
-    </View>
-  </View>
-);
+const visitSummaryService = new MockVisitSummaryService({
+  [PATIENT_ID]: [
+    {
+      id: 'vs-seeded-1',
+      apptId: 'appt-1',
+      patientId: PATIENT_ID,
+      title: '05/10/2025',
+      issuedAt: '2025-10-05T10:00:00.000Z',
+    }
+  ],
+});
 
 // Profile Icon Component
 const ProfileIcon = ({ focused }: { focused: boolean }) => (
@@ -195,6 +344,24 @@ const ChatIcon = ({ focused }: { focused: boolean }) => (
   </View>
 );
 
+// Home Icon Component
+const HomeIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={[styles.homeIcon, focused && styles.iconFocused]}>
+      <View style={[styles.homeRoof, focused && styles.homeFocused]} />
+      <View style={[styles.homeBody, focused && styles.homeFocused]} />
+    </View>
+  </View>
+);
+
 // SOS Icon Component
 const SOSIcon = ({ focused }: { focused: boolean }) => (
   <View style={[styles.tabIconContainer, styles.sosIconContainer, focused && styles.tabIconFocused]}>
@@ -217,9 +384,16 @@ const SOSScreen = () => {
   return (
     <View style={{ flex: 1, backgroundColor: '#161B24' }}>
       <StatusBar barStyle="light-content" />
-      {/* Header */}
+      {/* Header with back button */}
       <View style={styles.sosHeader}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Home')}
+          style={styles.sosBackButton}
+        >
+          <Text style={styles.sosBackButtonText}>‹</Text>
+        </TouchableOpacity>
         <Text style={styles.sosHeaderTitle}>SOS</Text>
+        <View style={styles.sosBackButton} />
       </View>
       
       {/* Content */}
@@ -231,34 +405,49 @@ const SOSScreen = () => {
   );
 };
 
+// Home Tab (navigates to stack Home when selected)
+const HomeTab = () => {
+  const navigation = useNavigation<any>();
+  React.useEffect(() => {
+    navigation.navigate('Home');
+  }, [navigation]);
+  return <View />;
+};
+
 function RootTabs({ role, patientId, uid, onRoleChange }: { 
   role: 'patient' | 'family'; 
   patientId: string; 
   uid: string;
   onRoleChange: (role: 'patient' | 'family') => void;
 }) {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator 
-      initialRouteName="HomeTab"
       screenOptions={{ 
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#2a3647',
           borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-          paddingTop: 10,
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 12),
+          paddingTop: 8,
         },
         tabBarShowLabel: false,
       }}
     >
       <Tab.Screen 
-        name="HomeTab"
+        name="Home"
         options={{
           tabBarIcon: ({ focused }) => <HomeIcon focused={focused} />,
         }}
       >
-        {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
+        {() => (
+          <HomeScreen 
+            role={role}
+            patientId={patientId}
+            appointmentService={apptService}
+            checklistService={checklistService}
+          />
+        )}
       </Tab.Screen>
 
       <Tab.Screen 
@@ -297,9 +486,15 @@ export default function App() {
   const patientId = PATIENT_ID;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="RootTabs">
-        {/* Tab Navigator as default - now includes Home */}
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="RootTabs">
+        {/* Home Screen as default (not in tabs) */}
+        <Stack.Screen name="Home" options={{ headerShown: false }}>
+          {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
+        </Stack.Screen>
+
+        {/* Tab Navigator */}
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
           {() => <RootTabs role={role} patientId={patientId} uid={uid} onRoleChange={setRole} />}
         </Stack.Screen>
@@ -325,6 +520,32 @@ export default function App() {
               role={role} />
           )}
         </Stack.Screen>
+        <Stack.Screen name="AppointmentHistory" options={{ headerShown: false }}>
+          {() => (
+            <AppointmentHistoryScreen
+              patientId={patientId}
+              service={apptService}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="CareVisitSummaries" options={{ headerShown: false }}>
+          {() => (
+            <CareVisitSummariesScreen
+              patientId={patientId}
+              service={visitSummaryService}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="HomecareVisitSummary" options={{ headerShown: false }}>
+          {(props) => (
+            <HomecareVisitSummaryScreen {...props} role={role} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="ProfileInfo" options={{ headerShown: false }}>
+          {() => (
+            <ProfileInfoScreen role={role} />
+          )}
+        </Stack.Screen>
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>
           {(props) => (
             // inject services and patientId
@@ -334,12 +555,15 @@ export default function App() {
                 ...props,
                 service: apptService,
                 patientId,
+                role,
+                visitSummaryService,
               })}
             </>
           )}
         </Stack.Screen>
       </Stack.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
@@ -357,51 +581,6 @@ const styles = StyleSheet.create({
   },
   iconFocused: {
     // Additional styling for focused state
-  },
-  // Home Icon
-  homeIcon: {
-    width: 32,
-    height: 32,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  homeRoof: {
-    width: 0,
-    height: 0,
-    backgroundColor: 'transparent',
-    borderStyle: 'solid',
-    borderLeftWidth: 16,
-    borderRightWidth: 16,
-    borderBottomWidth: 12,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: '#8E9BA8',
-    marginBottom: 2,
-  },
-  homeRoofFocused: {
-    borderBottomColor: '#fff',
-  },
-  homeBase: {
-    width: 24,
-    height: 16,
-    backgroundColor: '#8E9BA8',
-    borderRadius: 2,
-  },
-  homeBaseFocused: {
-    backgroundColor: '#fff',
-  },
-  homeDoor: {
-    width: 8,
-    height: 10,
-    backgroundColor: '#161B24',
-    position: 'absolute',
-    bottom: 0,
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 2,
-  },
-  homeDoorFocused: {
-    backgroundColor: '#2a3647',
   },
   // Profile Icon
   profileIcon: {
@@ -460,6 +639,35 @@ const styles = StyleSheet.create({
   chatTailFocused: {
     backgroundColor: '#fff',
   },
+  // Home Icon
+  homeIcon: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  homeRoof: {
+    width: 22,
+    height: 22,
+    borderLeftWidth: 11,
+    borderRightWidth: 11,
+    borderBottomWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#8E9BA8',
+    marginTop: 2,
+  },
+  homeBody: {
+    width: 22,
+    height: 12,
+    backgroundColor: '#8E9BA8',
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  homeFocused: {
+    borderBottomColor: '#fff',
+    backgroundColor: '#fff',
+  },
   // SOS Icon
   sosIconContainer: {
     backgroundColor: '#FF4444',
@@ -476,11 +684,22 @@ const styles = StyleSheet.create({
   sosHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
     paddingHorizontal: 20,
     paddingBottom: 16,
     backgroundColor: '#161B24',
+  },
+  sosBackButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sosBackButtonText: {
+    fontSize: 36,
+    color: '#fff',
+    fontWeight: '300',
   },
   sosHeaderTitle: {
     fontSize: 18,

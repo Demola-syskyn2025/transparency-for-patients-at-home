@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import ChatScreen from './src/screens/ChatScreen';
@@ -403,6 +404,7 @@ function RootTabs({ role, patientId, uid, onRoleChange }: {
   uid: string;
   onRoleChange: (role: 'patient' | 'family') => void;
 }) {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator 
       screenOptions={{ 
@@ -410,9 +412,8 @@ function RootTabs({ role, patientId, uid, onRoleChange }: {
         tabBarStyle: {
           backgroundColor: '#2a3647',
           borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-          paddingTop: 10,
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 12),
+          paddingTop: 8,
         },
         tabBarShowLabel: false,
       }}
@@ -469,8 +470,9 @@ export default function App() {
   const patientId = PATIENT_ID;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="RootTabs">
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="RootTabs">
         {/* Home Screen as default (not in tabs) */}
         <Stack.Screen name="Home" options={{ headerShown: false }}>
           {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
@@ -524,7 +526,8 @@ export default function App() {
           )}
         </Stack.Screen>
       </Stack.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Audio } from "expo-av";
 import React, { useEffect, useMemo, useState } from "react";
@@ -19,7 +20,7 @@ type SessionItem = { id: string; title: string; ended?: boolean };
 
 export default function ChatScreen() {
   const navigation = useNavigation<any>();
-  const BASE_URL = "http://your-ip-address:3000";
+  const BASE_URL = "http://192.168.101.101:3000";
   const {
     sessionId,
     messages,
@@ -258,7 +259,7 @@ export default function ChatScreen() {
             onPress={handleBackToSessions}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>‹</Text>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.chatHeaderTitle}>CHAT</Text>
         </View>

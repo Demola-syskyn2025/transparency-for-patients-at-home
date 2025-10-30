@@ -1,9 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
-import type { Appointment } from '../utils/types';
-import type { AppointmentService } from '../services/appointments';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import StatusBadge from '../components/appoinments/StatusBadge';
+import type { AppointmentService } from '../services/appointments';
+import type { Appointment } from '../utils/types';
 
 export default function AppointmentHistoryScreen({
   patientId,
@@ -30,14 +30,6 @@ export default function AppointmentHistoryScreen({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{"<"}</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>APPOINTMENT HISTORY</Text>
-        <View style={styles.backButton} />
-      </View>
-
       <View style={styles.content}>
         <FlatList
           data={historyItems}
@@ -78,33 +70,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#161B24',
-  },
-  header: {
-    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 1,
   },
   content: {
     flex: 1,

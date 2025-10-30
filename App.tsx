@@ -483,10 +483,22 @@ export default function App() {
           {() => <RootTabs role={role} patientId={patientId} uid={uid} onRoleChange={setRole} />}
         </Stack.Screen>
 
-        <Stack.Screen name="PatientAppointment" options={{ headerShown: false }}>
+        <Stack.Screen name="PatientAppointment" options={{ 
+          title: 'APPOINTMENTS',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+          headerBackTitle: 'Back',
+        }}>
           {() => <PatientAppointmentScreen patientId={patientId} service={apptService} />}
         </Stack.Screen>
-        <Stack.Screen name="Appointments" options={{ headerShown: false }}>
+        <Stack.Screen name="Appointments" options={{ 
+          title: 'APPOINTMENTS',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+          headerBackTitle: 'Back',
+        }}>
           {() => (
             <AppointmentsScreen
               role={role}
@@ -495,7 +507,13 @@ export default function App() {
               uid={uid} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="Checklist" options={{ headerShown: false }}>
+        <Stack.Screen name="Checklist" options={{ 
+          title: 'CHECKLIST',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+          headerBackTitle: 'Back',
+        }}>
           {() => (
             <ChecklistScreen
               patientId={patientId}
@@ -504,7 +522,13 @@ export default function App() {
               role={role} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="AppointmentHistory" options={{ headerShown: false }}>
+        <Stack.Screen name="AppointmentHistory" options={{ 
+          title: 'APPOINTMENT HISTORY',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+          headerBackTitle: 'Back',
+        }}>
           {() => (
             <AppointmentHistoryScreen
               patientId={patientId}
@@ -512,7 +536,13 @@ export default function App() {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen name="CareVisitSummaries" options={{ headerShown: false }}>
+        <Stack.Screen name="CareVisitSummaries" options={{ 
+          title: 'HOMECARE VISIT SUMMARIES',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 16 },
+          headerBackTitle: 'Back',
+        }}>
           {() => (
             <CareVisitSummariesScreen
               patientId={patientId}
@@ -520,17 +550,43 @@ export default function App() {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen name="HomecareVisitSummary" options={{ headerShown: false }}>
+        <Stack.Screen name="HomecareVisitSummary" options={{ 
+          title: 'HOMECARE VISIT SUMMARY',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 16 },
+          headerBackTitle: 'Back',
+        }}>
           {(props) => (
             <HomecareVisitSummaryScreen {...props} role={role} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="ProfileInfo" options={{ headerShown: false }}>
+        <Stack.Screen name="ProfileInfo" options={{ 
+          title: 'MY INFO',
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+          headerBackTitle: 'Back',
+        }}>
           {() => (
             <ProfileInfoScreen role={role} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>
+        <Stack.Screen 
+          name="AppointmentDetail" 
+          options={{ 
+            title: 'Appointment Details',
+            headerStyle: {
+              backgroundColor: '#161B24',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 18,
+            },
+            headerBackTitle: 'Back',
+          }}
+        >
           {(props) => (
             // inject services and patientId
             <>

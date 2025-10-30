@@ -1,21 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Platform, ScrollView, StatusBar, StyleSheet, Text, View, Pressable } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function ProfileInfoScreen({ role = 'patient' }: { role?: 'patient' | 'family' }) {
   const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.headerRow}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
-          <Text style={styles.headerBackText}>‹</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>{role === 'patient' ? 'MY INFO' : 'MY PARENT INFO'}</Text>
-        <View style={styles.headerBackBtn} />
-      </View>
-
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           {role === 'family' && (
@@ -66,32 +57,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#161B24',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? (StatusBar.currentHeight + 20) : 40,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: '#161B24',
-  },
-  headerBackBtn: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerBackText: {
-    fontSize: 36,
-    color: '#fff',
-    fontWeight: '300',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 2,
   },
   scrollContent: {
     paddingHorizontal: 20,

@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomecareVisitSummaryScreen({
@@ -27,14 +27,6 @@ export default function HomecareVisitSummaryScreen({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{'<'}</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>HOMECARE VISIT SUMMARY</Text>
-        <View style={styles.backButton} />
-      </View>
-
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         <View style={styles.card}>
           <Text style={styles.title}>Nurse home visit</Text>
@@ -101,33 +93,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#161B24',
-  },
-  header: {
-    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 1,
   },
   card: {
     backgroundColor: '#2D3947',

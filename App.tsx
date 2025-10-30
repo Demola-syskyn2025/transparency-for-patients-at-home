@@ -176,11 +176,60 @@ const initialAppointments: Record<string, Appointment[]> = {
 
 const initialThreads: Record<string, ChatMessage[]> = {
   'appt-1': [
-    { id: 'm1', apptId: 'appt-1', author: 'system', text: 'Appointment created', at: '2025-10-01T12:00:10.000Z' },
-    { id: 'm2', apptId: 'appt-1', author: 'staff', text: 'We will bring dressing kit.', at: '2025-10-01T16:30:00.000Z' },
+    { id: 'a1-m1', apptId: 'appt-1', author: 'system', text: 'Appointment created', at: '2025-10-01T12:00:10.000Z' },
+    { id: 'a1-m2', apptId: 'appt-1', author: 'staff', text: 'We will bring dressing kit.', at: '2025-10-01T16:30:00.000Z' },
+    { id: 'a1-m3', apptId: 'appt-1', author: 'family', text: 'Please confirm parking info near our entrance.', at: '2025-10-04T10:00:00.000Z' },
+    { id: 'a1-m4', apptId: 'appt-1', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-04T10:00:30.000Z' },
+    { id: 'a1-m5', apptId: 'appt-1', author: 'system', text: 'Staff en route', at: '2025-10-05T08:20:00.000Z' },
+    { id: 'a1-m6', apptId: 'appt-1', author: 'system', text: 'ETA updated to 2025-10-05 08:50–09:10', at: '2025-10-05T08:30:00.000Z' },
+    { id: 'a1-m7', apptId: 'appt-1', author: 'system', text: 'Staff arrived', at: '2025-10-05T08:58:00.000Z' },
   ],
   'appt-2': [
-    { id: 'm3', apptId: 'appt-2', author: 'system', text: 'Appointment created', at: '2025-10-01T12:05:10.000Z' },
+    { id: 'a2-m1', apptId: 'appt-2', author: 'system', text: 'Appointment created', at: '2025-10-01T12:05:10.000Z' },
+    { id: 'a2-m2', apptId: 'appt-2', author: 'system', text: 'Rescheduled on 2025-10-06 17:00 to 2025-10-07 14:00 (video).', at: '2025-10-06T17:00:00.000Z' },
+    { id: 'a2-m3', apptId: 'appt-2', author: 'family', text: 'Can we extend the consultation to 30 minutes?', at: '2025-10-06T17:10:00.000Z' },
+    { id: 'a2-m4', apptId: 'appt-2', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-06T17:10:30.000Z' },
+    { id: 'a2-m5', apptId: 'appt-2', author: 'staff', text: 'Yes, booked for 30 minutes.', at: '2025-10-06T18:00:00.000Z' },
+    { id: 'a2-m6', apptId: 'appt-2', author: 'system', text: 'Staff ready to start video', at: '2025-10-07T13:55:00.000Z' },
+  ],
+  'appt-3': [
+    { id: 'a3-m1', apptId: 'appt-3', author: 'system', text: 'Appointment created', at: '2025-10-02T09:00:10.000Z' },
+    { id: 'a3-m2', apptId: 'appt-3', author: 'family', text: 'Please cancel this appointment.', at: '2025-10-05T07:55:00.000Z' },
+    { id: 'a3-m3', apptId: 'appt-3', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-05T07:55:30.000Z' },
+    { id: 'a3-m4', apptId: 'appt-3', author: 'system', text: 'Appointment cancelled', at: '2025-10-05T08:00:00.000Z' },
+  ],
+  'appt-4': [
+    { id: 'a4-m1', apptId: 'appt-4', author: 'system', text: 'Appointment created', at: '2025-11-01T12:00:10.000Z' },
+    { id: 'a4-m2', apptId: 'appt-4', author: 'staff', text: 'Please have your walking aid ready.', at: '2025-11-07T09:00:00.000Z' },
+    { id: 'a4-m3', apptId: 'appt-4', author: 'family', text: 'Can you also check knee pain during the visit?', at: '2025-11-09T18:00:00.000Z' },
+    { id: 'a4-m4', apptId: 'appt-4', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-11-09T18:00:30.000Z' },
+    { id: 'a4-m5', apptId: 'appt-4', author: 'system', text: 'Staff en route', at: '2025-11-10T10:00:00.000Z' },
+    { id: 'a4-m6', apptId: 'appt-4', author: 'system', text: 'Staff arrived', at: '2025-11-10T10:28:00.000Z' },
+  ],
+  'appt-5': [
+    { id: 'a5-m1', apptId: 'appt-5', author: 'system', text: 'Appointment created', at: '2025-11-05T09:00:10.000Z' },
+    { id: 'a5-m2', apptId: 'appt-5', author: 'staff', text: 'Reminder: Please fast overnight. Water is allowed.', at: '2025-11-21T17:00:00.000Z' },
+    { id: 'a5-m3', apptId: 'appt-5', author: 'family', text: 'Is water allowed before the sample?', at: '2025-11-21T20:00:00.000Z' },
+    { id: 'a5-m4', apptId: 'appt-5', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-11-21T20:00:30.000Z' },
+    { id: 'a5-m5', apptId: 'appt-5', author: 'staff', text: 'Yes, water is fine before the sample.', at: '2025-11-21T20:30:00.000Z' },
+    { id: 'a5-m6', apptId: 'appt-5', author: 'system', text: 'Staff en route', at: '2025-11-22T07:30:00.000Z' },
+    { id: 'a5-m7', apptId: 'appt-5', author: 'system', text: 'Staff arrived', at: '2025-11-22T07:52:00.000Z' },
+  ],
+  'appt-6': [
+    { id: 'a6-m1', apptId: 'appt-6', author: 'system', text: 'Appointment created', at: '2025-11-25T10:00:10.000Z' },
+    { id: 'a6-m2', apptId: 'appt-6', author: 'system', text: 'Rescheduled on 2025-12-03 09:00 due to clinic schedule change.', at: '2025-12-03T09:00:00.000Z' },
+    { id: 'a6-m3', apptId: 'appt-6', author: 'family', text: 'Please include my daughter in the video call.', at: '2025-12-03T12:00:00.000Z' },
+    { id: 'a6-m4', apptId: 'appt-6', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-12-03T12:00:30.000Z' },
+    { id: 'a6-m5', apptId: 'appt-6', author: 'staff', text: 'Meeting link sent to registered emails.', at: '2025-12-05T12:15:00.000Z' },
+    { id: 'a6-m6', apptId: 'appt-6', author: 'system', text: 'Ready to start video', at: '2025-12-05T12:55:00.000Z' },
+  ],
+  'appt-7': [
+    { id: 'a7-m1', apptId: 'appt-7', author: 'system', text: 'Appointment created', at: '2025-12-01T08:30:10.000Z' },
+    { id: 'a7-m2', apptId: 'appt-7', author: 'family', text: 'Prefer morning before 10:00 if possible.', at: '2025-12-10T11:00:00.000Z' },
+    { id: 'a7-m3', apptId: 'appt-7', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-12-10T11:00:30.000Z' },
+    { id: 'a7-m4', apptId: 'appt-7', author: 'staff', text: 'Noted; current plan is 09:30.', at: '2025-12-10T12:00:00.000Z' },
+    { id: 'a7-m5', apptId: 'appt-7', author: 'system', text: 'Staff en route', at: '2025-12-18T08:50:00.000Z' },
+    { id: 'a7-m6', apptId: 'appt-7', author: 'system', text: 'Staff arrived', at: '2025-12-18T09:22:00.000Z' },
   ],
 };
 

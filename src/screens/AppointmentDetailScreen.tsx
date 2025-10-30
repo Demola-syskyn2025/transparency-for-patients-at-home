@@ -100,16 +100,16 @@ export default function AppointmentDetailScreen({
 
         <Text style={{ marginTop: 6, marginBottom: 4 }}>
           {new Date(appt.startAt).toLocaleString()}
-          {appt.endAt ? ` - ${new Date(appt.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+          {appt.endAt ? ` - ${new Date(appt.endAt).toLocaleString()}` : ''}
         </Text>
         {appt.location ? <Text style={{ marginBottom: 8 }}>📍 {appt.location}</Text> : null}
 
         {etaStart && etaEnd ? (
           <Text style={{ marginBottom: 8 }}>
-            ETA: {etaStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            ETA: {etaStart.toLocaleString()}
             –
-            {etaEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {etaUpdatedAt ? `  (updated ${etaUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : ''}
+            {etaEnd.toLocaleString()}
+            {etaUpdatedAt ? `  (updated ${etaUpdatedAt.toLocaleString()})` : ''}
           </Text>
         ) : null}
 
@@ -158,7 +158,7 @@ export default function AppointmentDetailScreen({
               </Text>
               <Text>{item.text}</Text>
               <Text style={{ fontSize: 11, opacity: 0.5, marginTop: 2 }}>
-                {new Date(item.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(item.at).toLocaleString()}
               </Text>
             </View>
           )}

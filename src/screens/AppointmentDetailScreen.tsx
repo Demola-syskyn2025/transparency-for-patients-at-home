@@ -84,6 +84,10 @@ export default function AppointmentDetailScreen({
   const etaEnd = appt.etaEnd ? new Date(appt.etaEnd) : null;
   const etaUpdatedAt = appt.etaUpdatedAt ? new Date(appt.etaUpdatedAt) : null;
 
+  const apptEndRef = appt.endAt ? new Date(appt.endAt) : new Date(appt.startAt);
+  const isPast = apptEndRef.getTime() < Date.now();
+  const showCompleted = isPast && (appt.status === 'scheduled' || appt.status === 'rescheduled');
+
   const DAY_MS = 24 * 60 * 60 * 1000;
   const canRequestChange = new Date(appt.startAt).getTime() - Date.now() >= DAY_MS;
 
@@ -96,7 +100,12 @@ export default function AppointmentDetailScreen({
             {appt.title}
           </Text>
         </View>
-        <StatusBadge status={appt.status ?? 'scheduled'} />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ marginRight: 8 }}>
+            <StatusBadge status={appt.status ?? 'scheduled'} />
+          </View>
+          {showCompleted ? <StatusBadge status={'completed'} /> : null}
+        </View>
 
         <Text style={{ marginTop: 6, marginBottom: 4 }}>
           {new Date(appt.startAt).toLocaleString()}

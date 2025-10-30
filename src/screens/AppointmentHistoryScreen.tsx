@@ -48,7 +48,13 @@ export default function AppointmentHistoryScreen({
             <Pressable style={styles.item} onPress={() => navigation.navigate('AppointmentDetail', { apptId: item.id })}>
               <View style={styles.itemHeader}>
                 <Text style={styles.itemTitle}>{item.title}</Text>
-                <StatusBadge status={item.status ?? 'scheduled'} />
+                {(() => {
+                  const endRef = item.endAt ? new Date(item.endAt) : new Date(item.startAt);
+                  const isPast = endRef.getTime() < Date.now();
+                  const baseStatus = item.status ?? 'scheduled';
+                  const statusToShow = (isPast && (baseStatus === 'scheduled' || baseStatus === 'rescheduled')) ? 'completed' : baseStatus;
+                  return <StatusBadge status={statusToShow} />;
+                })()}
               </View>
               <Text style={styles.itemSub}>
                 {new Date(item.startAt).toLocaleDateString('en-GB')}  ·  {new Date(item.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

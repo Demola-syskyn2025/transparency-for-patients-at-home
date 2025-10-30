@@ -185,6 +185,9 @@ export default function PatientAppointmentScreen({
   const etaStart = displayedAppt?.etaStart ? new Date(displayedAppt.etaStart) : null;
   const etaEnd = displayedAppt?.etaEnd ? new Date(displayedAppt.etaEnd) : null;
   const etaUpdatedAt = displayedAppt?.etaUpdatedAt ? new Date(displayedAppt.etaUpdatedAt) : null;
+  const apptEndRef = displayedAppt?.endAt ? new Date(displayedAppt.endAt) : apptDate;
+  const isPast = apptEndRef.getTime() < Date.now();
+  const showCompleted = isPast && (displayedAppt?.status === 'scheduled' || displayedAppt?.status === 'rescheduled');
 
   return (
     <View style={styles.container}>
@@ -286,8 +289,11 @@ export default function PatientAppointmentScreen({
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Status:</Text>
-          <View>
-            <StatusBadge status={displayedAppt.status ?? 'scheduled'} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ marginRight: 8 }}>
+              <StatusBadge status={displayedAppt.status ?? 'scheduled'} />
+            </View>
+            {showCompleted ? <StatusBadge status={'completed'} /> : null}
           </View>
         </View>
 

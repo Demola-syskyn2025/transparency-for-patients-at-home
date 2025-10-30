@@ -1,6 +1,6 @@
 // src/screens/AppointmentDetailScreen.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Dimensions, TextInput, FlatList, Pressable } from 'react-native';
+import { View, Text, Dimensions, TextInput, FlatList, Pressable, Modal } from 'react-native';
 import type { Appointment, ChatMessage } from '../utils/types';
 import type { AppointmentService } from '../services/appointments';
 import StatusBadge from '../components/appoinments/StatusBadge';
@@ -20,6 +20,11 @@ export default function AppointmentDetailScreen({
   const [appt, setAppt] = useState<Appointment | null>(null);
   const [msgs, setMsgs] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
+  const [changeVisible, setChangeVisible] = useState(false);
+  const [prefDate, setPrefDate] = useState('');
+  const [prefFrom, setPrefFrom] = useState('');
+  const [prefTo, setPrefTo] = useState('');
+  const [reason, setReason] = useState('');
   const unsubRef = useRef<null | (() => void)>(null);
 
   useEffect(() => {
@@ -47,6 +52,22 @@ export default function AppointmentDetailScreen({
     setText('');
   }
 
+  async function submitChange() {
+    const payload = {
+      preferredDate: prefDate.trim() || null,
+      preferredTimeFrom: prefFrom.trim() || null,
+      preferredTimeTo: prefTo.trim() || null,
+      reason: reason.trim() || null,
+    };
+    const tagged = `[REQUEST_CHANGE]${JSON.stringify(payload)}`;
+    await service.sendMessage(apptId, { apptId, author: 'family', text: tagged });
+    setPrefDate('');
+    setPrefFrom('');
+    setPrefTo('');
+    setReason('');
+    setChangeVisible(false);
+  }
+
   if (!appt) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -60,6 +81,7 @@ export default function AppointmentDetailScreen({
   const etaUpdatedAt = appt.etaUpdatedAt ? new Date(appt.etaUpdatedAt) : null;
 
   return (
+    <>
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ padding: 16, minHeight: height * 0.25 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -100,6 +122,10 @@ export default function AppointmentDetailScreen({
             ))}
           </View>
         ) : null}
+
+        <Pressable onPress={() => setChangeVisible(true)} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#111', borderRadius: 8 }}>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>Request change</Text>
+        </Pressable>
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: 16 }}>
@@ -139,5 +165,43 @@ export default function AppointmentDetailScreen({
         </View>
       </View>
     </View>
+
+    <Modal visible={changeVisible} transparent animationType="slide" onRequestClose={() => setChangeVisible(false)}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+        <View style={{ backgroundColor: '#fff', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', marginBottom: 10 }}>Request change</Text>
+          <Text style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>Provide preferred time and reason</Text>
+          <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>Preferred date (YYYY-MM-DD)</Text>
+              <TextInput value={prefDate} onChangeText={setPrefDate} placeholder="2025-10-07" style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 }} />
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>From (HH:MM)</Text>
+              <TextInput value={prefFrom} onChangeText={setPrefFrom} placeholder="09:00" style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 }} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>To (HH:MM)</Text>
+              <TextInput value={prefTo} onChangeText={setPrefTo} placeholder="11:00" style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 }} />
+            </View>
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>Reason</Text>
+            <TextInput value={reason} onChangeText={setReason} placeholder="e.g. Caregiver unavailable until noon" multiline style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, minHeight: 60, textAlignVertical: 'top' }} />
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <Pressable onPress={() => setChangeVisible(false)} style={{ paddingHorizontal: 12, paddingVertical: 10, marginRight: 8 }}>
+              <Text>Cancel</Text>
+            </Pressable>
+            <Pressable onPress={submitChange} style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#111', borderRadius: 10 }}>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Send</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }

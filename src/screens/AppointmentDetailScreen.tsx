@@ -55,6 +55,10 @@ export default function AppointmentDetailScreen({
     );
   }
 
+  const etaStart = appt.etaStart ? new Date(appt.etaStart) : null;
+  const etaEnd = appt.etaEnd ? new Date(appt.etaEnd) : null;
+  const etaUpdatedAt = appt.etaUpdatedAt ? new Date(appt.etaUpdatedAt) : null;
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ padding: 16, minHeight: height * 0.25 }}>
@@ -70,6 +74,15 @@ export default function AppointmentDetailScreen({
           {appt.endAt ? ` - ${new Date(appt.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
         </Text>
         {appt.location ? <Text style={{ marginBottom: 8 }}>📍 {appt.location}</Text> : null}
+
+        {etaStart && etaEnd ? (
+          <Text style={{ marginBottom: 8 }}>
+            ETA: {etaStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            –
+            {etaEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {etaUpdatedAt ? `  (updated ${etaUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : ''}
+          </Text>
+        ) : null}
 
         {appt.reasonForChange ? (
           <View style={{ backgroundColor: '#FFF4E5', borderRadius: 8, padding: 8, marginBottom: 8 }}>

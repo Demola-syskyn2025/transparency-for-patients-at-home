@@ -42,6 +42,12 @@ const initialAppointments: Record<string, Appointment[]> = {
         { id: 'doc-1', name: 'Dr. Anna Virtanen', role: 'doctor', phone: '+358 40 123 4567' },
         { id: 'nurse-1', name: 'Mika Korhonen', role: 'nurse', phone: '+358 40 765 4321' },
       ],
+      etaStart: '2025-10-05T08:50:00.000Z',
+      etaEnd: '2025-10-05T09:10:00.000Z',
+      etaUpdatedAt: '2025-10-05T08:30:00.000Z',
+      statusHistory: [
+        { at: '2025-10-01T12:00:10.000Z', status: 'scheduled' },
+      ],
     },
     {
       id: 'appt-2',
@@ -57,6 +63,13 @@ const initialAppointments: Record<string, Appointment[]> = {
       assignedStaff: [
         { id: 'doc-2', name: 'Dr. Juhani Mäkinen', role: 'doctor', phone: '+358 50 222 3344' },
       ],
+      etaStart: '2025-10-07T13:45:00.000Z',
+      etaEnd: '2025-10-07T14:15:00.000Z',
+      etaUpdatedAt: '2025-10-07T12:30:00.000Z',
+      statusHistory: [
+        { at: '2025-10-01T12:05:10.000Z', status: 'scheduled' },
+        { at: '2025-10-06T17:00:00.000Z', status: 'rescheduled', reason: 'Doctor reassigned to acute case' },
+      ],
     },
     {
       id: 'appt-3',
@@ -70,6 +83,10 @@ const initialAppointments: Record<string, Appointment[]> = {
       assignedStaff: [
         { id: 'doc-1', name: 'Dr. Anna Virtanen', role: 'doctor', phone: '+358 40 123 4567' },
         { id: 'nurse-2', name: 'Sara Laine', role: 'nurse' },
+      ],
+      statusHistory: [
+        { at: '2025-10-02T09:00:10.000Z', status: 'scheduled' },
+        { at: '2025-10-05T08:00:00.000Z', status: 'cancelled', reason: 'Patient requested to cancel' },
       ],
     },
   ],

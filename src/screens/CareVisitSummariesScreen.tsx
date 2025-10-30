@@ -36,7 +36,7 @@ export default function CareVisitSummariesScreen({
         contentContainerStyle={{ padding: 16 }}
         ListEmptyComponent={<Text style={styles.emptyText}>No summaries</Text>}
         renderItem={({ item }) => (
-          <Pressable style={styles.item} onPress={() => navigation.navigate('AppointmentDetail', { apptId: item.apptId })}>
+          <Pressable style={styles.item} onPress={() => navigation.navigate('HomecareVisitSummary', { apptId: item.apptId })}>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.sub}>{new Date(item.issuedAt).toLocaleString()}</Text>
           </Pressable>

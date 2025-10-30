@@ -8,7 +8,7 @@ export type VisitSummary = {
 
 export interface VisitSummaryService {
   has(apptId: string): Promise<boolean>;
-  request(apptId: string, patientId: string): Promise<VisitSummary>;
+  request(apptId: string, patientId: string, startAtISO?: string): Promise<VisitSummary>;
   listByPatient(patientId: string): Promise<VisitSummary[]>;
 }
 
@@ -28,18 +28,20 @@ export class MockVisitSummaryService implements VisitSummaryService {
     return this.byAppt.has(apptId);
   }
 
-  async request(apptId: string, patientId: string): Promise<VisitSummary> {
+  async request(apptId: string, patientId: string, startAtISO?: string): Promise<VisitSummary> {
     if (this.byAppt.has(apptId)) {
       const arr = this.store.get(patientId) || [];
       const found = arr.find((s) => s.apptId === apptId);
       if (found) return found;
     }
+    const issuedAt = new Date().toISOString();
+    const titleDate = new Date(startAtISO || issuedAt).toLocaleDateString('en-GB');
     const summary: VisitSummary = {
       id: `vs-${Math.random().toString(36).slice(2, 8)}`,
       apptId,
       patientId,
-      title: 'Visit Summary',
-      issuedAt: new Date().toISOString(),
+      title: titleDate,
+      issuedAt,
     };
     const arr = this.store.get(patientId) || [];
     arr.unshift(summary);

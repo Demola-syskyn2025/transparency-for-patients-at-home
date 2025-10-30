@@ -112,10 +112,11 @@ export default function AppointmentDetailScreen({
 
   async function requestVisitSummary() {
     if (requestingSummary) return;
+    if (!appt) return;
     setRequestingSummary(true);
     setSummaryRequested(true);
     try {
-      await visitSummaryService.request(apptId, patientId);
+      await visitSummaryService.request(apptId, patientId, appt.startAt);
       setHasSummary(true);
     } finally {
       setRequestingSummary(false);

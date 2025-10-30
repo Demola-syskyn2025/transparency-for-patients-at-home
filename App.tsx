@@ -15,6 +15,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import ProfileInfoScreen from './src/screens/ProfileInfoScreen';
 import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
 import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
+import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen';
 import ChecklistScreen from './src/screens/ChecklistScreen';
 import { MockAppointmentService } from './src/services/appointments';
 import { MockChecklistService } from './src/services/checklist';
@@ -296,7 +297,15 @@ const checklistService = new MockChecklistService({
 });
 
 const visitSummaryService = new MockVisitSummaryService({
-  [PATIENT_ID]: [],
+  [PATIENT_ID]: [
+    {
+      id: 'vs-seeded-1',
+      apptId: 'appt-1',
+      patientId: PATIENT_ID,
+      title: '05/10/2025',
+      issuedAt: '2025-10-05T10:00:00.000Z',
+    }
+  ],
 });
 
 // Profile Icon Component
@@ -525,6 +534,11 @@ export default function App() {
               patientId={patientId}
               service={visitSummaryService}
             />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="HomecareVisitSummary" options={{ headerShown: false }}>
+          {(props) => (
+            <HomecareVisitSummaryScreen {...props} role={role} />
           )}
         </Stack.Screen>
         <Stack.Screen name="ProfileInfo" options={{ headerShown: false }}>

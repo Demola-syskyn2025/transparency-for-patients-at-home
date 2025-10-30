@@ -29,44 +29,25 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
 
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
-                    {/* Avatar */}
-                    <View style={styles.avatarContainer}>
-                        <View style={styles.avatar}>
-                            <View style={styles.avatarHead} />
-                            <View style={styles.avatarBody} />
-                        </View>
-                    </View>
+                    {role === 'patient' && (
+                        <>
+                            <View style={styles.avatarContainer}>
+                                <View style={styles.avatar}>
+                                    <View style={styles.avatarHead} />
+                                    <View style={styles.avatarBody} />
+                                </View>
+                            </View>
+                            <Text style={styles.name}>Shai Alexander</Text>
+                        </>
+                    )}
 
-                    {/* Name */}
-                    <Text style={styles.name}>Shai Alexander</Text>
-
-                    {/* Info Grid */}
-                    <View style={styles.infoGrid}>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Age:</Text>
-                            <Text style={styles.infoValue}>60</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Date of Birth:</Text>
-                            <Text style={styles.infoValue}>25/08/1965</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Sex:</Text>
-                            <Text style={styles.infoValue}>Male</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Blood Type:</Text>
-                            <Text style={styles.infoValue}>AB</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Phone number:</Text>
-                            <Text style={styles.infoValue}>0441234456</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Health Status:</Text>
-                            <Text style={styles.healthStatus}>Healthy</Text>
-                        </View>
-                    </View>
+                    <Pressable 
+                        style={styles.menuButton}
+                        onPress={() => navigation.navigate('ProfileInfo')}
+                    >
+                        <Text style={styles.menuButtonText}>{role === 'patient' ? 'My Info' : 'My Parent Info'}</Text>
+                        <Text style={styles.menuButtonArrow}>›</Text>
+                    </Pressable>
 
                     {/* Medical ID Button */}
                     <Pressable style={styles.menuButton}>
@@ -74,7 +55,6 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
                         <Text style={styles.menuButtonArrow}>›</Text>
                     </Pressable>
 
-                    {/* Smart Health Devices Button */}
                     <Pressable style={styles.menuButton}>
                         <Text style={styles.menuButtonText}>Smart Health Devices</Text>
                         <Text style={styles.menuButtonArrow}>›</Text>

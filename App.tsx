@@ -12,6 +12,7 @@ import ChatScreen from './src/screens/ChatScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ProfileInfoScreen from './src/screens/ProfileInfoScreen';
 import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
 import { MockAppointmentService } from './src/services/appointments';
 import type { Appointment, ChatMessage } from './src/utils/types';
@@ -510,6 +511,11 @@ export default function App() {
               patientId={patientId}
               service={apptService}
             />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="ProfileInfo" options={{ headerShown: false }}>
+          {() => (
+            <ProfileInfoScreen role={role} />
           )}
         </Stack.Screen>
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "transparency-home",
-    "slug": "transparency-home",
+    "name": "HomeCare",
+    "slug": "homecare-demo",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "transparencyhome",
@@ -35,6 +35,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "bartttender"
   }
 }

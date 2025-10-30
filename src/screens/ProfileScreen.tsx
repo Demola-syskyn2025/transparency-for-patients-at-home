@@ -16,6 +16,7 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                <Text style={styles.appName}>HOMECARE</Text>
                 {/* Header with checkmark */}
                 <View style={styles.header}>
                     <Pressable 
@@ -229,5 +230,13 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginHorizontal: 12,
         fontWeight: '500',
+    },
+    appName: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#fff',
+        textAlign: 'center',
+        letterSpacing: 2,
+        marginBottom: 10,
     },
 });

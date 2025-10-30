@@ -64,7 +64,7 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
                         style={styles.menuButton}
                         onPress={() => navigation.navigate('CareVisitSummaries')}
                     >
-                        <Text style={styles.menuButtonText}>Care Visit Summaries</Text>
+                        <Text style={styles.menuButtonText}>Homecare Visit Summaries</Text>
                         <Text style={styles.menuButtonArrow}>›</Text>
                     </Pressable>
 

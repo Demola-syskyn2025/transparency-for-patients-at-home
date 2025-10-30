@@ -34,6 +34,7 @@ export default function AppointmentDetailScreen({
   const [reason, setReason] = useState('');
   const [hasSummary, setHasSummary] = useState<boolean>(false);
   const [requestingSummary, setRequestingSummary] = useState<boolean>(false);
+  const [summaryRequested, setSummaryRequested] = useState<boolean>(false);
   const unsubRef = useRef<null | (() => void)>(null);
 
   useEffect(() => {
@@ -112,6 +113,7 @@ export default function AppointmentDetailScreen({
   async function requestVisitSummary() {
     if (requestingSummary) return;
     setRequestingSummary(true);
+    setSummaryRequested(true);
     try {
       await visitSummaryService.request(apptId, patientId);
       setHasSummary(true);
@@ -133,11 +135,15 @@ export default function AppointmentDetailScreen({
         {role === 'family' && showCompleted && (
           hasSummary ? (
             <Pressable onPress={() => navigation.navigate('CareVisitSummaries')} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#2a3647', borderRadius: 8, marginBottom: 8 }}>
-              <Text style={{ color: '#fff', fontWeight: '600' }}>Visit summary available in Care Visit Summaries</Text>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Homecare visit summary available in Homecare Visit Summaries</Text>
             </Pressable>
+          ) : summaryRequested ? (
+            <View style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#9CA3AF', borderRadius: 8, marginBottom: 8 }}>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>homecare visit summary for this appointment is being created</Text>
+            </View>
           ) : (
             <Pressable onPress={requestVisitSummary} disabled={requestingSummary} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: requestingSummary ? '#999' : '#111', borderRadius: 8, marginBottom: 8, opacity: requestingSummary ? 0.7 : 1 }}>
-              <Text style={{ color: '#fff', fontWeight: '600' }}>Request Visit Summary</Text>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Request Homecare Visit Summary</Text>
             </Pressable>
           )
         )}

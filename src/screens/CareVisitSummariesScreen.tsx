@@ -26,7 +26,7 @@ export default function CareVisitSummariesScreen({
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>{'<'}</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>CARE VISIT SUMMARIES</Text>
+        <Text style={styles.headerTitle}>HOMECARE VISIT SUMMARIES</Text>
         <View style={styles.backButton} />
       </View>
 

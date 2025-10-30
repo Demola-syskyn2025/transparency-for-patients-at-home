@@ -1,7 +1,9 @@
 // src/screens/AppointmentDetailScreen.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Dimensions, TextInput, FlatList, Pressable, Modal } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import type { Appointment, ChatMessage } from '../utils/types';
+import type { VisitSummaryService } from '../services/visitSummaries';
 import type { AppointmentService } from '../services/appointments';
 import StatusBadge from '../components/appoinments/StatusBadge';
 
@@ -11,12 +13,17 @@ export default function AppointmentDetailScreen({
   route,
   service,
   patientId,
+  role,
+  visitSummaryService,
 }: {
   route: { params: { apptId: string } };
   service: AppointmentService;
   patientId: string;
+  role: 'patient' | 'family';
+  visitSummaryService: VisitSummaryService;
 }) {
   const { apptId } = route.params;
+  const navigation = useNavigation<any>();
   const [appt, setAppt] = useState<Appointment | null>(null);
   const [msgs, setMsgs] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
@@ -25,6 +32,8 @@ export default function AppointmentDetailScreen({
   const [prefFrom, setPrefFrom] = useState('');
   const [prefTo, setPrefTo] = useState('');
   const [reason, setReason] = useState('');
+  const [hasSummary, setHasSummary] = useState<boolean>(false);
+  const [requestingSummary, setRequestingSummary] = useState<boolean>(false);
   const unsubRef = useRef<null | (() => void)>(null);
 
   useEffect(() => {
@@ -36,6 +45,15 @@ export default function AppointmentDetailScreen({
     })();
     return () => { alive = false; };
   }, [apptId, patientId, service]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const val = await visitSummaryService.has(apptId);
+      if (alive) setHasSummary(val);
+    })();
+    return () => { alive = false; };
+  }, [apptId, visitSummaryService]);
 
   useEffect(() => {
     unsubRef.current?.();
@@ -91,6 +109,17 @@ export default function AppointmentDetailScreen({
   const DAY_MS = 24 * 60 * 60 * 1000;
   const canRequestChange = new Date(appt.startAt).getTime() - Date.now() >= DAY_MS;
 
+  async function requestVisitSummary() {
+    if (requestingSummary) return;
+    setRequestingSummary(true);
+    try {
+      await visitSummaryService.request(apptId, patientId);
+      setHasSummary(true);
+    } finally {
+      setRequestingSummary(false);
+    }
+  }
+
   return (
     <>
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -100,6 +129,18 @@ export default function AppointmentDetailScreen({
             {appt.title}
           </Text>
         </View>
+
+        {role === 'family' && showCompleted && (
+          hasSummary ? (
+            <Pressable onPress={() => navigation.navigate('CareVisitSummaries')} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#2a3647', borderRadius: 8, marginBottom: 8 }}>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Visit summary available in Care Visit Summaries</Text>
+            </Pressable>
+          ) : (
+            <Pressable onPress={requestVisitSummary} disabled={requestingSummary} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: requestingSummary ? '#999' : '#111', borderRadius: 8, marginBottom: 8, opacity: requestingSummary ? 0.7 : 1 }}>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Request Visit Summary</Text>
+            </Pressable>
+          )
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ marginRight: 8 }}>
             <StatusBadge status={appt.status ?? 'scheduled'} />

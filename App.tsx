@@ -14,12 +14,14 @@ import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ProfileInfoScreen from './src/screens/ProfileInfoScreen';
 import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
+import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
+import ChecklistScreen from './src/screens/ChecklistScreen';
 import { MockAppointmentService } from './src/services/appointments';
+import { MockChecklistService } from './src/services/checklist';
+import { MockVisitSummaryService } from './src/services/visitSummaries';
 import type { Appointment, ChatMessage } from './src/utils/types';
 
 // NEW: Checklist
-import ChecklistScreen from './src/screens/ChecklistScreen';
-import { MockChecklistService } from './src/services/checklist';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -293,6 +295,10 @@ const checklistService = new MockChecklistService({
   ],
 });
 
+const visitSummaryService = new MockVisitSummaryService({
+  [PATIENT_ID]: [],
+});
+
 // Profile Icon Component
 const ProfileIcon = ({ focused }: { focused: boolean }) => (
   <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
@@ -513,6 +519,14 @@ export default function App() {
             />
           )}
         </Stack.Screen>
+        <Stack.Screen name="CareVisitSummaries" options={{ headerShown: false }}>
+          {() => (
+            <CareVisitSummariesScreen
+              patientId={patientId}
+              service={visitSummaryService}
+            />
+          )}
+        </Stack.Screen>
         <Stack.Screen name="ProfileInfo" options={{ headerShown: false }}>
           {() => (
             <ProfileInfoScreen role={role} />
@@ -527,6 +541,8 @@ export default function App() {
                 ...props,
                 service: apptService,
                 patientId,
+                role,
+                visitSummaryService,
               })}
             </>
           )}

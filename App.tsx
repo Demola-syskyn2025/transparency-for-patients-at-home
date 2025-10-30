@@ -183,6 +183,7 @@ const initialThreads: Record<string, ChatMessage[]> = {
     { id: 'a1-m5', apptId: 'appt-1', author: 'system', text: 'Staff en route', at: '2025-10-05T08:20:00.000Z' },
     { id: 'a1-m6', apptId: 'appt-1', author: 'system', text: 'ETA updated to 2025-10-05 08:50–09:10', at: '2025-10-05T08:30:00.000Z' },
     { id: 'a1-m7', apptId: 'appt-1', author: 'system', text: 'Staff arrived', at: '2025-10-05T08:58:00.000Z' },
+    { id: 'a1-m8', apptId: 'appt-1', author: 'system', text: 'Appointment completed', at: '2025-10-05T09:30:00.000Z' },
   ],
   'appt-2': [
     { id: 'a2-m1', apptId: 'appt-2', author: 'system', text: 'Appointment created', at: '2025-10-01T12:05:10.000Z' },
@@ -191,6 +192,7 @@ const initialThreads: Record<string, ChatMessage[]> = {
     { id: 'a2-m4', apptId: 'appt-2', author: 'system', text: 'Your message has been received. A nurse will reply if needed.', at: '2025-10-06T17:10:30.000Z' },
     { id: 'a2-m5', apptId: 'appt-2', author: 'staff', text: 'Yes, booked for 30 minutes.', at: '2025-10-06T18:00:00.000Z' },
     { id: 'a2-m6', apptId: 'appt-2', author: 'system', text: 'Staff ready to start video', at: '2025-10-07T13:55:00.000Z' },
+    { id: 'a2-m7', apptId: 'appt-2', author: 'system', text: 'Appointment completed', at: '2025-10-07T14:30:00.000Z' },
   ],
   'appt-3': [
     { id: 'a3-m1', apptId: 'appt-3', author: 'system', text: 'Appointment created', at: '2025-10-02T09:00:10.000Z' },

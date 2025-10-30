@@ -24,10 +24,16 @@ function Row({
   item,
   onToggle,
   canToggle,
+  canRemind,
+  onRemind,
+  reminded,
 }: {
   item: ChecklistItem;
   onToggle: (id: string, next: boolean) => void;
   canToggle: boolean;
+  canRemind: boolean;
+  onRemind: (id: string) => void;
+  reminded: boolean;
 }) {
   const due = new Date(item.dueAt);
   const now = new Date();
@@ -70,12 +76,32 @@ function Row({
           <Text style={{ color: item.done ? '#22c55e' : '#7FB3D5' }}>{item.done ? 'Done' : 'Tick'}</Text>
         </Pressable>
       ) : (
-        <View style={{
-          paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10,
-          backgroundColor: statusStyles.bg,
-          borderWidth: 1, borderColor: statusStyles.border
-        }}>
-          <Text style={{ color: statusStyles.text }}>{statusLabel}</Text>
+        <View style={{ alignItems: 'flex-end' }}>
+          <View style={{
+            paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10,
+            backgroundColor: statusStyles.bg,
+            borderWidth: 1, borderColor: statusStyles.border,
+            marginBottom: (canRemind && isOverdue && !item.done) ? 6 : 0,
+          }}>
+            <Text style={{ color: statusStyles.text }}>{statusLabel}</Text>
+          </View>
+          {(canRemind && isOverdue && !item.done) && (
+            reminded ? (
+              <View style={{ paddingVertical: 6, paddingHorizontal: 10 }}>
+                <Text style={{ color: '#7FB3D5' }}>Reminder sent</Text>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => onRemind(item.id)}
+                style={{
+                  paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10,
+                  backgroundColor: 'rgba(127, 179, 213, 0.2)', borderWidth: 1, borderColor: '#7FB3D5'
+                }}
+              >
+                <Text style={{ color: '#7FB3D5' }}>Send reminder</Text>
+              </Pressable>
+            )
+          )}
         </View>
       )}
     </View>
@@ -95,6 +121,8 @@ export default function ChecklistScreen({
 }) {
   const navigation = useNavigation<any>();
   const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [reminded, setReminded] = useState<Record<string, boolean>>({});
+
   const today = new Date();
 
   async function load() {
@@ -124,6 +152,11 @@ export default function ChecklistScreen({
     load();
   };
 
+  const onRemind = (id: string) => {
+    if (role !== 'family') return;
+    setReminded(prev => ({ ...prev, [id]: true }));
+  };
+
   return (
     <View style={styles.container}>
       {/* Header with back button and safe area padding */}
@@ -142,9 +175,18 @@ export default function ChecklistScreen({
         <FlatList
           data={pending}
           keyExtractor={(i) => i.id}
-          renderItem={({ item }) => <Row item={item} onToggle={onToggle} canToggle={role === 'patient'} />}
-            ListEmptyComponent={<Text style={styles.emptyText}>All done 🎉</Text>}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => (
+            <Row
+              item={item}
+              onToggle={onToggle}
+              canToggle={role === 'patient'}
+              canRemind={role === 'family'}
+              onRemind={onRemind}
+              reminded={!!reminded[item.id]}
+            />
+          )}
+          ListEmptyComponent={<Text style={styles.emptyText}>All done 🎉</Text>}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       </Section>
 
@@ -152,7 +194,16 @@ export default function ChecklistScreen({
         <FlatList
           data={done}
           keyExtractor={(i) => i.id}
-          renderItem={({ item }) => <Row item={item} onToggle={onToggle} canToggle={role === 'patient'} />}
+          renderItem={({ item }) => (
+            <Row
+              item={item}
+              onToggle={onToggle}
+              canToggle={role === 'patient'}
+              canRemind={false}
+              onRemind={onRemind}
+              reminded={!!reminded[item.id]}
+            />
+          )}
           ListEmptyComponent={<Text style={styles.emptyText}>No completed items yet</Text>}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           />

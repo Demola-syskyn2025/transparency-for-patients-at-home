@@ -53,6 +53,10 @@ export default function AppointmentDetailScreen({
   }
 
   async function submitChange() {
+    if (!canRequestChange) {
+      setChangeVisible(false);
+      return;
+    }
     const payload = {
       preferredDate: prefDate.trim() || null,
       preferredTimeFrom: prefFrom.trim() || null,
@@ -79,6 +83,9 @@ export default function AppointmentDetailScreen({
   const etaStart = appt.etaStart ? new Date(appt.etaStart) : null;
   const etaEnd = appt.etaEnd ? new Date(appt.etaEnd) : null;
   const etaUpdatedAt = appt.etaUpdatedAt ? new Date(appt.etaUpdatedAt) : null;
+
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const canRequestChange = new Date(appt.startAt).getTime() - Date.now() >= DAY_MS;
 
   return (
     <>
@@ -123,13 +130,18 @@ export default function AppointmentDetailScreen({
           </View>
         ) : null}
 
-        <Pressable onPress={() => setChangeVisible(true)} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#111', borderRadius: 8 }}>
+        <Pressable disabled={!canRequestChange} onPress={() => setChangeVisible(true)} style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: canRequestChange ? '#111' : '#999', opacity: canRequestChange ? 1 : 0.5, borderRadius: 8 }}>
           <Text style={{ color: '#fff', fontWeight: '600' }}>Request change</Text>
         </Pressable>
+        {!canRequestChange && (
+          <Text style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
+            Change requests are available only 24h before the appointment.
+          </Text>
+        )}
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: 16 }}>
-        <Text style={{ fontWeight: '600', marginBottom: 6 }}>Notes / Requests</Text>
+        <Text style={{ fontWeight: '600', marginBottom: 6 }}>Care Chat</Text>
         <FlatList
           data={msgs}
           keyExtractor={(m) => m.id}

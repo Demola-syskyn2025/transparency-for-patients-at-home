@@ -7,7 +7,6 @@
     "scheme": "transparencyhome",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.transparencyhome",
@@ -19,23 +18,31 @@
         }
       }
     },
-
     "android": {
-      "permissions": ["RECORD_AUDIO"],
+      "permissions": [
+        "RECORD_AUDIO",
+        "RECORD_AUDIO"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.transparencyhome",
       "usesCleartextTraffic": true
     },
-
-    "web": {
-      "output": "static"
-    },
-
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "owner": "bartttender"
+    "owner": "viinivahti",
+    "extra": {
+      "eas": {
+        "projectId": "75dc4087-cb1d-42e3-8b07-a17c67579ee1"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/75dc4087-cb1d-42e3-8b07-a17c67579ee1"
+    }
   }
 }

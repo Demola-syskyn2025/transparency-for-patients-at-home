@@ -19,7 +19,7 @@ type SessionItem = { id: string; title: string; ended?: boolean };
 
 export default function ChatScreen() {
   const navigation = useNavigation<any>();
-  const BASE_URL = "http://replacewithyouripv4:3000";
+  const BASE_URL = "http://your-ip-address:3000";
   const {
     sessionId,
     messages,

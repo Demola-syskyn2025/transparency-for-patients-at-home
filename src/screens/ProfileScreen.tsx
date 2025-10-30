@@ -16,7 +16,7 @@ export default function ProfileScreen({ role = 'patient', onRoleChange }: Profil
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.appName}>HOMECARE</Text>
+
                 {/* Header with checkmark */}
                 <View style={styles.header}>
                     <Pressable 

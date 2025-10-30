@@ -9,7 +9,7 @@ export default function STTGemini() {
   const [text, setText] = useState("");
   const [summaryText, setSummaryText] = useState("");
 
-  const BASE_URL = "http://replacewithyouripv4:3000";
+  const BASE_URL = "http://your-ip-address:3000";
 
   const startRecording = async () => {
     const { status } = await Audio.requestPermissionsAsync();

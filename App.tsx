@@ -4,19 +4,19 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
+import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import ChecklistScreen from './src/screens/ChecklistScreen';
+import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
 import ProfileInfoScreen from './src/screens/ProfileInfoScreen';
-import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
-import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
-import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen';
-import ChecklistScreen from './src/screens/ChecklistScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import { MockAppointmentService } from './src/services/appointments';
 import { MockChecklistService } from './src/services/checklist';
 import { MockVisitSummaryService } from './src/services/visitSummaries';
@@ -356,8 +356,9 @@ const HomeIcon = ({ focused }: { focused: boolean }) => (
       />
     )}
     <View style={[styles.homeIcon, focused && styles.iconFocused]}>
-      <View style={[styles.homeRoof, focused && styles.homeFocused]} />
-      <View style={[styles.homeBody, focused && styles.homeFocused]} />
+      <View style={[styles.homeRoof, focused && styles.homeRoofFocused]} />
+      <View style={[styles.homeBase, focused && styles.homeBaseFocused]} />
+      <View style={[styles.homeDoor, focused && styles.homeDoorFocused]} />
     </View>
   </View>
 );
@@ -384,16 +385,9 @@ const SOSScreen = () => {
   return (
     <View style={{ flex: 1, backgroundColor: '#161B24' }}>
       <StatusBar barStyle="light-content" />
-      {/* Header with back button */}
+      {/* Header */}
       <View style={styles.sosHeader}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Home')}
-          style={styles.sosBackButton}
-        >
-          <Text style={styles.sosBackButtonText}>‹</Text>
-        </TouchableOpacity>
         <Text style={styles.sosHeaderTitle}>SOS</Text>
-        <View style={styles.sosBackButton} />
       </View>
       
       {/* Content */}
@@ -405,14 +399,8 @@ const SOSScreen = () => {
   );
 };
 
-// Home Tab (navigates to stack Home when selected)
-const HomeTab = () => {
-  const navigation = useNavigation<any>();
-  React.useEffect(() => {
-    navigation.navigate('Home');
-  }, [navigation]);
-  return <View />;
-};
+// (removed HomeTab) Home is provided directly as a Tab.Screen to avoid navigating
+// from a tab into the stack 'Home' route which hides the tab bar.
 
 function RootTabs({ role, patientId, uid, onRoleChange }: { 
   role: 'patient' | 'family'; 
@@ -423,6 +411,7 @@ function RootTabs({ role, patientId, uid, onRoleChange }: {
   const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator 
+      initialRouteName="Home"
       screenOptions={{ 
         headerShown: false,
         tabBarStyle: {
@@ -489,11 +478,6 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="RootTabs">
-        {/* Home Screen as default (not in tabs) */}
-        <Stack.Screen name="Home" options={{ headerShown: false }}>
-          {() => <HomeScreen role={role} patientId={patientId} appointmentService={apptService} checklistService={checklistService} />}
-        </Stack.Screen>
-
         {/* Tab Navigator */}
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
           {() => <RootTabs role={role} patientId={patientId} uid={uid} onRoleChange={setRole} />}
@@ -657,16 +641,29 @@ const styles = StyleSheet.create({
     borderBottomColor: '#8E9BA8',
     marginTop: 2,
   },
-  homeBody: {
-    width: 22,
-    height: 12,
-    backgroundColor: '#8E9BA8',
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  homeFocused: {
+  homeRoofFocused: {
     borderBottomColor: '#fff',
+  },
+  homeBase: {
+    width: 24,
+    height: 16,
+    backgroundColor: '#8E9BA8',
+    borderRadius: 2,
+  },
+  homeBaseFocused: {
     backgroundColor: '#fff',
+  },
+  homeDoor: {
+    width: 8,
+    height: 10,
+    backgroundColor: '#161B24',
+    position: 'absolute',
+    bottom: 0,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  homeDoorFocused: {
+    backgroundColor: '#2a3647',
   },
   // SOS Icon
   sosIconContainer: {
@@ -684,7 +681,7 @@ const styles = StyleSheet.create({
   sosHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
     paddingHorizontal: 20,
     paddingBottom: 16,

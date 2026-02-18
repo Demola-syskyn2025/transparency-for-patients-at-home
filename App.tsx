@@ -1,5 +1,5 @@
 // App.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,9 +7,21 @@ import { ActivityIndicator, View, Text } from 'react-native';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
+
+// Patient screens
 import HomeScreen from './src/screens/HomeScreen';
-import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import ChecklistScreen from './src/screens/ChecklistScreen';
+import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
+
+// Family screens
+import FamilyDashboardScreen from './src/screens/FamilyDashboardScreen';
+
+// Staff screens
+import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
+import MyPatientsScreen from './src/screens/MyPatientsScreen';
+
+// Shared screens
+import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import AppointmentDetailScreen from './src/screens/AppointmentDetailScreen';
@@ -20,100 +32,109 @@ import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen
 import { AppointmentApiService } from './src/services/appointmentApi';
 import { ChecklistApiService } from './src/services/checklistApi';
 import { VisitSummaryApiService } from './src/services/visitSummaryApi';
-import type { AppointmentService } from './src/services/appointments';
-import type { ChecklistService } from './src/services/checklist';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// Map backend roles to frontend role concept
-function mapRole(backendRole: string): 'patient' | 'family' {
+type AppRole = 'patient' | 'family' | 'staff';
+
+function mapRole(backendRole: string): AppRole {
   if (backendRole === 'PATIENT') return 'patient';
-  return 'family'; // FAMILY_MEMBER, DOCTOR, NURSE all see "family" view for now
+  if (backendRole === 'FAMILY_MEMBER') return 'family';
+  return 'staff'; // DOCTOR, NURSE
 }
 
-function RootTabs({
-  role,
-  patientId,
-  uid,
-  apptService,
-  checklistService,
-}: {
-  role: 'patient' | 'family';
-  patientId: string;
-  uid: string;
-  apptService: AppointmentService;
-  checklistService: ChecklistService;
-}) {
+const TAB_STYLE = {
+  tabBarStyle: { backgroundColor: '#1F2937', borderTopColor: 'rgba(255,255,255,0.1)' },
+  tabBarActiveTintColor: '#7FB3D5',
+  tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
+  headerStyle: { backgroundColor: '#161B24' },
+  headerTintColor: '#fff',
+};
+
+// ===================== PATIENT TABS =====================
+function PatientTabs({ patientId, uid, apptService, checklistService }: any) {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarStyle: { backgroundColor: '#1F2937', borderTopColor: 'rgba(255,255,255,0.1)' },
-        tabBarActiveTintColor: '#7FB3D5',
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
-        headerStyle: { backgroundColor: '#161B24' },
-        headerTintColor: '#fff',
-      }}
-    >
+    <Tab.Navigator screenOptions={TAB_STYLE}>
       <Tab.Screen name="Home" options={{ headerShown: false }}>
         {() => (
           <HomeScreen
-            role={role}
+            role="patient"
             patientId={patientId}
             appointmentService={apptService}
             checklistService={checklistService}
           />
         )}
       </Tab.Screen>
-
-      <Tab.Screen name="Appointments">
-        {() => (
-          <AppointmentsScreen
-            role={role}
-            patientId={patientId}
-            service={apptService}
-            uid={uid}
-          />
-        )}
+      <Tab.Screen name="Appointments" options={{ title: 'My Appointments' }}>
+        {() => <PatientAppointmentScreen patientId={patientId} service={apptService} />}
       </Tab.Screen>
-
       <Tab.Screen name="Checklist">
-        {() => (
-          <ChecklistScreen
-            patientId={patientId}
-            uid={uid}
-            service={checklistService}
-            role={role}
-          />
-        )}
+        {() => <ChecklistScreen patientId={patientId} uid={uid} service={checklistService} role="patient" />}
       </Tab.Screen>
-
-      <Tab.Screen name="Profile" options={{ headerShown: false }}>
-        {() => <ProfileScreen />}
-      </Tab.Screen>
-
       <Tab.Screen name="Chat" options={{ headerShown: false }}>
         {() => <ChatScreen />}
+      </Tab.Screen>
+      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+        {() => <ProfileScreen />}
       </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
-function AuthenticatedApp() {
-  const { user, logout } = useAuth();
+// ===================== FAMILY TABS =====================
+function FamilyTabs({ userId, apptService, visitSummaryService }: any) {
+  return (
+    <Tab.Navigator screenOptions={TAB_STYLE}>
+      <Tab.Screen name="Dashboard" options={{ headerShown: false }}>
+        {() => <FamilyDashboardScreen userId={userId} />}
+      </Tab.Screen>
+      <Tab.Screen name="Appointments">
+        {() => <AppointmentsScreen role="family" patientId={userId} service={apptService} uid={userId} />}
+      </Tab.Screen>
+      <Tab.Screen name="Summaries" options={{ title: 'Visit Summaries' }}>
+        {() => <CareVisitSummariesScreen patientId={userId} service={visitSummaryService} />}
+      </Tab.Screen>
+      <Tab.Screen name="Chat" options={{ headerShown: false }}>
+        {() => <ChatScreen />}
+      </Tab.Screen>
+      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+        {() => <ProfileScreen />}
+      </Tab.Screen>
+    </Tab.Navigator>
+  );
+}
 
-  // Derive patientId and role from authenticated user
-  const patientId = String(user!.id);
-  const uid = String(user!.id);
+// ===================== STAFF TABS =====================
+function StaffTabs({ staffId, apptService }: any) {
+  return (
+    <Tab.Navigator screenOptions={TAB_STYLE}>
+      <Tab.Screen name="Dashboard" options={{ headerShown: false }}>
+        {() => <StaffDashboardScreen staffId={staffId} />}
+      </Tab.Screen>
+      <Tab.Screen name="My Patients">
+        {() => <MyPatientsScreen staffId={staffId} />}
+      </Tab.Screen>
+      <Tab.Screen name="Schedule" options={{ title: 'All Appointments' }}>
+        {() => <AppointmentsScreen role="family" patientId={staffId} service={apptService} uid={staffId} />}
+      </Tab.Screen>
+      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+        {() => <ProfileScreen />}
+      </Tab.Screen>
+    </Tab.Navigator>
+  );
+}
+
+// ===================== AUTHENTICATED APP =====================
+function AuthenticatedApp() {
+  const { user } = useAuth();
+
+  const userId = String(user!.id);
   const role = mapRole(user!.role);
 
-  // Create API services (memoized so they don't recreate on every render)
   const apptService = useMemo(() => new AppointmentApiService(), []);
   const checklistService = useMemo(() => new ChecklistApiService(), []);
-  const visitSummaryService = useMemo(
-    () => new VisitSummaryApiService(patientId),
-    [patientId]
-  );
+  const visitSummaryService = useMemo(() => new VisitSummaryApiService(userId), [userId]);
 
   return (
     <NavigationContainer>
@@ -123,62 +144,68 @@ function AuthenticatedApp() {
           headerTintColor: '#fff',
         }}
       >
+        {/* Role-based root tabs */}
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
-          {() => (
-            <RootTabs
-              role={role}
-              patientId={patientId}
-              uid={uid}
-              apptService={apptService}
-              checklistService={checklistService}
-            />
-          )}
+          {() => {
+            if (role === 'patient') {
+              return (
+                <PatientTabs
+                  patientId={userId}
+                  uid={userId}
+                  apptService={apptService}
+                  checklistService={checklistService}
+                />
+              );
+            }
+            if (role === 'family') {
+              return (
+                <FamilyTabs
+                  userId={userId}
+                  apptService={apptService}
+                  visitSummaryService={visitSummaryService}
+                />
+              );
+            }
+            return <StaffTabs staffId={userId} apptService={apptService} />;
+          }}
         </Stack.Screen>
 
+        {/* Shared stack screens */}
         <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment Details' }}>
           {(props: any) => (
             <AppointmentDetailScreen
               route={props.route}
               service={apptService}
-              patientId={patientId}
-              role={role}
+              patientId={userId}
+              role={role === 'patient' ? 'patient' : 'family'}
               visitSummaryService={visitSummaryService}
             />
           )}
         </Stack.Screen>
 
         <Stack.Screen name="PatientAppointment" options={{ title: 'My Appointments' }}>
-          {() => {
-            const PatientAppointmentScreen = require('./src/screens/PatientAppointmentScreen').default;
-            return <PatientAppointmentScreen patientId={patientId} service={apptService} />;
-          }}
+          {() => <PatientAppointmentScreen patientId={userId} service={apptService} />}
         </Stack.Screen>
 
         <Stack.Screen name="AppointmentHistory" options={{ title: 'Appointment History' }}>
-          {() => (
-            <AppointmentHistoryScreen
-              patientId={patientId}
-              service={apptService}
-            />
-          )}
+          {() => <AppointmentHistoryScreen patientId={userId} service={apptService} />}
         </Stack.Screen>
 
         <Stack.Screen name="CareVisitSummaries" options={{ title: 'Visit Summaries' }}>
-          {() => (
-            <CareVisitSummariesScreen
-              patientId={patientId}
-              service={visitSummaryService}
-            />
-          )}
+          {() => <CareVisitSummariesScreen patientId={userId} service={visitSummaryService} />}
         </Stack.Screen>
 
         <Stack.Screen name="HomecareVisitSummary" options={{ title: 'Visit Summary' }}>
           {(props: any) => (
             <HomecareVisitSummaryScreen
               route={props.route}
-              role={role}
+              role={role === 'patient' ? 'patient' : 'family'}
             />
           )}
+        </Stack.Screen>
+
+        <Stack.Screen name="MyPatients" options={{ title: 'My Patients' }}>
+          {() => <MyPatientsScreen staffId={userId} />}
         </Stack.Screen>
 
         <Stack.Screen name="ProfileInfo" options={{ title: 'My Info' }}>
@@ -197,6 +224,7 @@ function AuthenticatedApp() {
   );
 }
 
+// ===================== ROOT =====================
 function AppContent() {
   const { user, loading } = useAuth();
 

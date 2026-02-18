@@ -140,6 +140,22 @@ export interface CreateVisitSummaryRequest {
   nextVisitRecommendation?: string;
 }
 
+// ========== Care Assignment ==========
+
+export interface CareAssignmentDto {
+  id: number;
+  patient: UserDto;
+  staff: UserDto;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export interface CreateCareAssignmentRequest {
+  patientId: number;
+  staffId: number;
+  isPrimary?: boolean;
+}
+
 // ========== Reschedule ==========
 
 export interface RescheduleRequestDto {

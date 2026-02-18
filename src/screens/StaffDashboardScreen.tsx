@@ -10,6 +10,7 @@ import type { AppointmentDto, RescheduleRequestDto } from '../utils/apiTypes';
 export default function StaffDashboardScreen({ staffId }: { staffId: string }) {
   const navigation = useNavigation<any>();
   const [todayAppts, setTodayAppts] = useState<AppointmentDto[]>([]);
+  const [upcomingAppts, setUpcomingAppts] = useState<AppointmentDto[]>([]);
   const [pendingReschedules, setPendingReschedules] = useState<RescheduleRequestDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,11 +22,25 @@ export default function StaffDashboardScreen({ staffId }: { staffId: string }) {
           rescheduleApi.getPending(),
         ]);
         const today = new Date().toDateString();
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        
         const allAppts: AppointmentDto[] = apptsRes.data;
         setTodayAppts(
           allAppts
             .filter((a) => new Date(a.scheduledAt).toDateString() === today)
             .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+        );
+        setUpcomingAppts(
+          allAppts
+            .filter((a) => {
+              const apptDate = new Date(a.scheduledAt);
+              return apptDate > tomorrow && apptDate <= nextWeek && a.status !== 'CANCELLED';
+            })
+            .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+            .slice(0, 5)
         );
         setPendingReschedules(reschedules);
       } catch {
@@ -85,6 +100,43 @@ export default function StaffDashboardScreen({ staffId }: { staffId: string }) {
                       {appt.location && <Text style={styles.cardSub}>{appt.location}</Text>}
                     </View>
                     <View style={[styles.statusDot, { backgroundColor: appt.status === 'COMPLETED' ? '#22C55E' : appt.status === 'IN_PROGRESS' ? '#F59E0B' : '#7FB3D5' }]} />
+                  </View>
+                </Pressable>
+              ))
+            )}
+
+            {/* Upcoming Appointments */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming This Week</Text>
+              <Text style={styles.badge}>{upcomingAppts.length}</Text>
+            </View>
+
+            {upcomingAppts.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyText}>No upcoming appointments</Text>
+              </View>
+            ) : (
+              upcomingAppts.map((appt) => (
+                <Pressable
+                  key={appt.id}
+                  style={styles.card}
+                  onPress={() => navigation.navigate('AppointmentDetail', { apptId: String(appt.id) })}
+                >
+                  <View style={styles.cardRow}>
+                    <View style={styles.upcomingDateBadge}>
+                      <Text style={styles.upcomingDateText}>
+                        {new Date(appt.scheduledAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}
+                      </Text>
+                      <Text style={styles.upcomingTimeText}>
+                        {new Date(appt.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={styles.cardTitle}>{appt.patient.firstName} {appt.patient.lastName}</Text>
+                      <Text style={styles.cardSub}>{appt.type.replace('_', ' ')} • {appt.estimatedDurationMinutes} min</Text>
+                      {appt.location && <Text style={styles.cardSub}>{appt.location}</Text>}
+                    </View>
+                    <View style={[styles.statusDot, { backgroundColor: appt.status === 'CONFIRMED' ? '#22C55E' : '#7FB3D5' }]} />
                   </View>
                 </Pressable>
               ))
@@ -158,6 +210,12 @@ const styles = StyleSheet.create({
   cardSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
   cardDate: { color: '#7FB3D5', fontSize: 12, marginTop: 6 },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
+  upcomingDateBadge: {
+    backgroundColor: 'rgba(34,197,94,0.2)', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 8,
+    alignItems: 'center', minWidth: 60,
+  },
+  upcomingDateText: { color: '#22C55E', fontSize: 12, fontWeight: '700' },
+  upcomingTimeText: { color: 'rgba(34,197,94,0.8)', fontSize: 11, fontWeight: '600', marginTop: 2 },
   emptyCard: {
     backgroundColor: 'rgba(42,54,71,0.3)', borderRadius: 12, padding: 20, alignItems: 'center', marginBottom: 10,
   },

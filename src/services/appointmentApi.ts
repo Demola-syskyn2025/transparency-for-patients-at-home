@@ -4,6 +4,41 @@ import type { AppointmentDto, CreateAppointmentRequest, UpdateAppointmentRequest
 import type { Appointment, ChatMessage } from '../utils/types';
 import type { AppointmentService } from './appointments';
 
+// Conflict resolution types
+export interface AppointmentCreationResponse {
+  success: boolean;
+  appointment?: AppointmentDto;
+  conflicts: string[];
+  alternativeTimes: Array<{
+    scheduledAt: string;
+    reason: string;
+    isPreferred: boolean;
+    confidence: number;
+  }>;
+  message?: string;
+}
+
+export interface BatchCreationWithConflictsResponse {
+  totalRequested: number;
+  totalCreated: number;
+  totalConflicts: number;
+  created: AppointmentDto[];
+  conflicts: Array<{
+    index: number;
+    patientId: number;
+    patientName: string;
+    requestedTime: string;
+    conflicts: string[];
+    alternativeTimes: Array<{
+      scheduledAt: string;
+      reason: string;
+      isPreferred: boolean;
+      confidence: number;
+    }>;
+  }>;
+  message: string;
+}
+
 // Convert backend AppointmentDto to frontend Appointment shape
 function toFrontend(dto: AppointmentDto): Appointment {
   const endAt = new Date(dto.scheduledAt);
@@ -67,6 +102,41 @@ export class AppointmentApiService implements AppointmentService {
     };
     const res = await api.post<AppointmentDto>('/appointments', request);
     return toFrontend(res.data);
+  }
+
+  async createWithConflictCheck(patientId: string, data: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ appointment?: Appointment; conflicts?: string[]; alternativeTimes?: any[] }> {
+    const request: CreateAppointmentRequest = {
+      patientId: Number(patientId),
+      staffId: Number(data.assignedStaff?.[0]?.id ?? 0),
+      scheduledAt: data.startAt,
+      estimatedDurationMinutes: 30,
+      type: 'HOME_VISIT',
+      notes: data.notes,
+      location: data.location,
+    };
+    
+    try {
+      const res = await api.post<AppointmentCreationResponse>('/appointments', request);
+      
+      if (res.data.success && res.data.appointment) {
+        return { appointment: toFrontend(res.data.appointment) };
+      } else {
+        // Return conflict information
+        return {
+          conflicts: res.data.conflicts,
+          alternativeTimes: res.data.alternativeTimes
+        };
+      }
+    } catch (error: any) {
+      // Handle API errors
+      if (error.response?.data?.conflicts) {
+        return {
+          conflicts: error.response.data.conflicts,
+          alternativeTimes: error.response.data.alternativeTimes || []
+        };
+      }
+      throw error;
+    }
   }
 
   async update(patientId: string, id: string, patch: Partial<Appointment>): Promise<void> {

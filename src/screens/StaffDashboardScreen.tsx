@@ -123,7 +123,7 @@ export default function StaffDashboardScreen({ staffId }: { staffId: string }) {
                 <Text style={styles.actionIcon}>👥</Text>
                 <Text style={styles.actionText}>My Patients</Text>
               </Pressable>
-              <Pressable style={styles.actionBtn} onPress={() => navigation.navigate('Appointments')}>
+              <Pressable style={styles.actionBtn} onPress={() => navigation.navigate('Schedule')}>
                 <Text style={styles.actionIcon}>📅</Text>
                 <Text style={styles.actionText}>All Appointments</Text>
               </Pressable>

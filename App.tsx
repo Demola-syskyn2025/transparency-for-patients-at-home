@@ -21,6 +21,7 @@ import FamilyDashboardScreen from './src/screens/FamilyDashboardScreen';
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 import MyPatientsScreen from './src/screens/MyPatientsScreen';
 import StaffScheduleScreen from './src/screens/StaffScheduleScreen';
+import PlanScheduleScreen from './src/screens/PlanScheduleScreen';
 
 // Shared screens
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
@@ -119,6 +120,9 @@ function StaffTabs({ staffId, apptService }: any) {
       </Tab.Screen>
       <Tab.Screen name="Schedule" options={{ title: 'All Appointments' }}>
         {() => <StaffScheduleScreen staffId={staffId} />}
+      </Tab.Screen>
+      <Tab.Screen name="Plan" options={{ title: 'Plan Week' }}>
+        {() => <PlanScheduleScreen staffId={staffId} />}
       </Tab.Screen>
       <Tab.Screen name="Profile" options={{ headerShown: false }}>
         {() => <ProfileScreen />}

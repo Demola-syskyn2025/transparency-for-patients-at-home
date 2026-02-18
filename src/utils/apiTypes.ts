@@ -15,6 +15,8 @@ export type AppointmentStatus =
 
 export type AppointmentType = 'HOME_VISIT' | 'HOSPITAL_VISIT' | 'TELECONSULTATION';
 
+export type RecurringFrequency = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+
 export type TaskStatus = 'PENDING' | 'COMPLETED' | 'SKIPPED';
 
 export type TaskFrequency = 'ONCE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
@@ -65,6 +67,9 @@ export interface AppointmentDto {
   status: AppointmentStatus;
   notes: string | null;
   location: string | null;
+  recurringGroupId: string | null;
+  recurringFrequency: RecurringFrequency | null;
+  recurringEndDate: string | null;
   createdAt: string;
 }
 
@@ -186,4 +191,48 @@ export interface ReviewRescheduleRequest {
   status: RescheduleStatus;
   staffResponse?: string;
   newScheduledAt?: string;
+}
+
+// ========== Schedule Suggestion ==========
+
+export interface SuggestedAppointment {
+  patientId: number;
+  patientName: string;
+  scheduledAt: string;
+  estimatedDurationMinutes: number;
+  type: AppointmentType;
+  notes: string | null;
+  location: string | null;
+  reason: string;
+  isFromRecurring: boolean;
+  recurringGroupId: string | null;
+}
+
+export interface UnscheduledPatient {
+  patientId: number;
+  patientName: string;
+  recommendedFrequency: RecurringFrequency | null;
+  lastVisitDate: string | null;
+  reason: string;
+}
+
+export interface ScheduleSuggestionResponse {
+  staffId: number;
+  staffName: string;
+  periodStart: string;
+  periodEnd: string;
+  suggestions: SuggestedAppointment[];
+  alreadyScheduled: AppointmentDto[];
+  unscheduledPatients: UnscheduledPatient[];
+}
+
+export interface BatchCreateAppointmentRequest {
+  appointments: CreateAppointmentRequest[];
+}
+
+export interface BatchCreateResponse {
+  created: AppointmentDto[];
+  errors: { index: number; errors: string[] }[];
+  totalCreated: number;
+  totalErrors: number;
 }

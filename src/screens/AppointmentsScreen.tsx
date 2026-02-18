@@ -55,18 +55,10 @@ export default function AppointmentsScreen({
     return m;
   }, [items]);
 
-  if (role === 'patient') {
-    return (
-      <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
-        <Text>Patient appointments (placeholder)</Text>
-      </View>
-    );
-  }
-
   const todaysAppointments = items.filter(it => sameYMD(new Date(it.startAt), cursor));
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#151A23' }}>
       <CalendarHeader viewMode={viewMode} setViewMode={setViewMode} cursor={cursor} setCursor={setCursor} />
       <CalendarGrid viewMode={viewMode} cursor={cursor} setCursor={setCursor} countByDay={countByDay} />
       <AppointmentList

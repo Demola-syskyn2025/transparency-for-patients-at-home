@@ -176,10 +176,7 @@ function AuthenticatedApp() {
           {(props: any) => (
             <AppointmentDetailScreen
               route={props.route}
-              service={apptService}
-              patientId={userId}
-              role={role === 'patient' ? 'patient' : 'family'}
-              visitSummaryService={visitSummaryService}
+              role={role}
             />
           )}
         </Stack.Screen>

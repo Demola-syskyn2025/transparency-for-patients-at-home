@@ -12,6 +12,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ChecklistScreen from './src/screens/ChecklistScreen';
 import PatientAppointmentScreen from './src/screens/PatientAppointmentScreen';
+import PatientOverviewScreen from './src/screens/PatientOverviewScreen';
 
 // Family screens
 import FamilyDashboardScreen from './src/screens/FamilyDashboardScreen';
@@ -206,6 +207,10 @@ function AuthenticatedApp() {
 
         <Stack.Screen name="MyPatients" options={{ title: 'My Patients' }}>
           {() => <MyPatientsScreen staffId={userId} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="PatientOverview" options={({ route }: any) => ({ title: route.params?.patientName || 'Patient' })}>
+          {(props: any) => <PatientOverviewScreen route={props.route} />}
         </Stack.Screen>
 
         <Stack.Screen name="ProfileInfo" options={{ title: 'My Info' }}>

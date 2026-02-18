@@ -10,7 +10,7 @@ import CalendarGrid from '../components/appoinments/CalendarGrid';
 import AppointmentList from '../components/appoinments/AppointmentList';
 // Bottom sheet replaced with full-screen detail navigation
 
-type Role = 'patient' | 'family';
+type Role = 'patient' | 'family' | 'staff';
 
 function sameYMD(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear()
@@ -22,11 +22,13 @@ export default function AppointmentsScreen({
   role,
   patientId,
   service,
+  fetchMode,
 }: {
   role: Role;
   patientId: string;
   service: AppointmentService;
   uid: string;
+  fetchMode?: 'patient' | 'staff';
 }) {
   const [items, setItems] = useState<Appointment[]>([]);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -36,9 +38,12 @@ export default function AppointmentsScreen({
   // Load data
   useEffect(() => {
     let alive = true;
-    service.listByPatient(patientId).then(rows => { if (alive) setItems(rows); });
+    const loader = (fetchMode === 'staff' && 'listByStaff' in service)
+      ? (service as any).listByStaff(patientId)
+      : service.listByPatient(patientId);
+    loader.then((rows: Appointment[]) => { if (alive) setItems(rows); });
     return () => { alive = false; };
-  }, [patientId, service]);
+  }, [patientId, service, fetchMode]);
 
   // Đếm số appointment theo ngày (để hiển thị count trên calendar)
   const countByDay = useMemo(() => {
@@ -50,7 +55,7 @@ export default function AppointmentsScreen({
     return m;
   }, [items]);
 
-  if (role !== 'family') {
+  if (role === 'patient') {
     return (
       <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
         <Text>Patient appointments (placeholder)</Text>

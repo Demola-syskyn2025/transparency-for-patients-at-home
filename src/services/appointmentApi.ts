@@ -50,6 +50,11 @@ export class AppointmentApiService implements AppointmentService {
     return res.data.map(toFrontend);
   }
 
+  async listByStaff(staffId: string): Promise<Appointment[]> {
+    const res = await api.get<AppointmentDto[]>(`/appointments/staff/${staffId}`);
+    return res.data.map(toFrontend);
+  }
+
   async create(patientId: string, data: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>): Promise<Appointment> {
     const request: CreateAppointmentRequest = {
       patientId: Number(patientId),

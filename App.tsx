@@ -117,7 +117,7 @@ function StaffTabs({ staffId, apptService }: any) {
         {() => <MyPatientsScreen staffId={staffId} />}
       </Tab.Screen>
       <Tab.Screen name="Schedule" options={{ title: 'All Appointments' }}>
-        {() => <AppointmentsScreen role="family" patientId={staffId} service={apptService} uid={staffId} />}
+        {() => <AppointmentsScreen role="staff" patientId={staffId} service={apptService} uid={staffId} fetchMode="staff" />}
       </Tab.Screen>
       <Tab.Screen name="Profile" options={{ headerShown: false }}>
         {() => <ProfileScreen />}

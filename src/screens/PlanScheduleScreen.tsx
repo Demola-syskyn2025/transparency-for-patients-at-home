@@ -271,17 +271,30 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
           {/* Unscheduled patients */}
           {data.unscheduledPatients.length > 0 && (
             <View style={s.warningSection}>
-              <Text style={s.warnTitle}>⚠️ Needs Manual Scheduling</Text>
+              <View style={s.warnHeader}>
+                <Text style={s.warnTitle}>📋 Patients Needing Appointments</Text>
+                <Text style={s.warnCount}>{data.unscheduledPatients.length} patient{data.unscheduledPatients.length !== 1 ? 's' : ''}</Text>
+              </View>
               {data.unscheduledPatients.map((p: UnscheduledPatient) => (
                 <View key={p.patientId} style={s.warnCard}>
-                  <Text style={s.warnPatient}>{p.patientName}</Text>
+                  <View style={s.warnCardHeader}>
+                    <Text style={s.warnPatient}>{p.patientName}</Text>
+                    <Pressable style={s.scheduleNowBtn} onPress={() => {
+                      // TODO: Navigate to manual appointment creation for this patient
+                      Alert.alert('Schedule Now', `Would navigate to manual scheduling for ${p.patientName}`);
+                    }}>
+                      <Text style={s.scheduleNowBtnText}>Schedule Now</Text>
+                    </Pressable>
+                  </View>
                   <Text style={s.warnReason}>{p.reason}</Text>
-                  {p.lastVisitDate && (
-                    <Text style={s.warnDetail}>Last visit: {fmtDay(p.lastVisitDate)}</Text>
-                  )}
-                  {p.recommendedFrequency && (
-                    <Text style={s.warnDetail}>Recommended: {p.recommendedFrequency.toLowerCase()}</Text>
-                  )}
+                  <View style={s.warnDetails}>
+                    {p.lastVisitDate && (
+                      <Text style={s.warnDetail}>📅 Last visit: {fmtDay(p.lastVisitDate)}</Text>
+                    )}
+                    {p.recommendedFrequency && (
+                      <Text style={s.warnDetail}>🔄 Recommended: {p.recommendedFrequency.toLowerCase()}</Text>
+                    )}
+                  </View>
                 </View>
               ))}
             </View>
@@ -357,11 +370,17 @@ const s = StyleSheet.create({
 
   // Warning section
   warningSection: { marginTop: 8, marginBottom: 20 },
-  warnTitle: { color: '#F59E0B', fontSize: 15, fontWeight: '700', marginBottom: 8 },
+  warnHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  warnTitle: { color: '#F59E0B', fontSize: 15, fontWeight: '700' },
+  warnCount: { color: 'rgba(245,158,11,0.7)', fontSize: 12, fontWeight: '600' },
   warnCard: { backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 10, padding: 12, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#F59E0B' },
-  warnPatient: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  warnCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  warnPatient: { color: '#fff', fontSize: 14, fontWeight: '700' },
   warnReason: { color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 },
+  warnDetails: { marginTop: 8 },
   warnDetail: { color: 'rgba(245,158,11,0.7)', fontSize: 12, marginTop: 2 },
+  scheduleNowBtn: { backgroundColor: '#F59E0B', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+  scheduleNowBtnText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 
   // Confirm button
   confirmBtn: { backgroundColor: '#22C55E', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 8 },

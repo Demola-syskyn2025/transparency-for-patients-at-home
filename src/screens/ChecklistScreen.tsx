@@ -60,10 +60,12 @@ export default function ChecklistScreen({
   patientId,
   uid,         // không dùng nhiều, giữ để đồng bộ props
   service,
+  role = 'patient',
 }: {
   patientId: string;
   uid: string;
   service: ChecklistService;
+  role?: 'patient' | 'family';
 }) {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const today = new Date();

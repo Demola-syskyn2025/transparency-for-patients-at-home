@@ -1,142 +1,69 @@
 // App.tsx
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, Switch } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
 
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
-import { MockAppointmentService } from './src/services/appointments';
-import type { Appointment, ChatMessage } from './src/utils/types';
-
-// NEW: Checklist
 import ChecklistScreen from './src/screens/ChecklistScreen';
-import { MockChecklistService } from './src/services/checklist';
+import ProfileScreen from './src/screens/ProfileScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import AppointmentDetailScreen from './src/screens/AppointmentDetailScreen';
+import AppointmentHistoryScreen from './src/screens/AppointmentHistoryScreen';
+import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
+import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen';
+
+import { AppointmentApiService } from './src/services/appointmentApi';
+import { ChecklistApiService } from './src/services/checklistApi';
+import { VisitSummaryApiService } from './src/services/visitSummaryApi';
+import type { AppointmentService } from './src/services/appointments';
+import type { ChecklistService } from './src/services/checklist';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-const PATIENT_ID = 'patient_demo';
-
-// ---------- Seed Appointments (giữ nguyên của Dan) ----------
-const initialAppointments: Record<string, Appointment[]> = {
-  [PATIENT_ID]: [
-    {
-      id: 'appt-1',
-      patientId: PATIENT_ID,
-      title: 'Nurse home visit',
-      startAt: '2025-10-05T09:00:00.000Z',
-      endAt: '2025-10-05T09:30:00.000Z',
-      location: 'Home',
-      notes: 'Check wound & vitals',
-      createdBy: 'system',
-      createdAt: '2025-10-01T12:00:00.000Z',
-      status: 'scheduled',
-      assignedStaff: [
-        { id: 'doc-1', name: 'Dr. Anna Virtanen', role: 'doctor', phone: '+358 40 123 4567' },
-        { id: 'nurse-1', name: 'Mika Korhonen', role: 'nurse', phone: '+358 40 765 4321' },
-      ],
-    },
-    {
-      id: 'appt-2',
-      patientId: PATIENT_ID,
-      title: 'Doctor consultation (video)',
-      startAt: '2025-10-07T14:00:00.000Z',
-      location: 'Video call',
-      notes: 'Discuss medication plan',
-      createdBy: 'system',
-      createdAt: '2025-10-01T12:05:00.000Z',
-      status: 'rescheduled',
-      reasonForChange: 'Doctor reassigned to acute case',
-      assignedStaff: [
-        { id: 'doc-2', name: 'Dr. Juhani Mäkinen', role: 'doctor', phone: '+358 50 222 3344' },
-      ],
-    },
-    {
-      id: 'appt-3',
-      patientId: PATIENT_ID,
-      title: 'IV therapy',
-      startAt: '2025-10-08T10:00:00.000Z',
-      createdBy: 'system',
-      createdAt: '2025-10-02T09:00:00.000Z',
-      status: 'cancelled',
-      reasonForChange: 'Patient requested to cancel',
-      assignedStaff: [
-        { id: 'doc-1', name: 'Dr. Anna Virtanen', role: 'doctor', phone: '+358 40 123 4567' },
-        { id: 'nurse-2', name: 'Sara Laine', role: 'nurse' },
-      ],
-    },
-  ],
-};
-
-const initialThreads: Record<string, ChatMessage[]> = {
-  'appt-1': [
-    { id: 'm1', apptId: 'appt-1', author: 'system', text: 'Appointment created', at: '2025-10-01T12:00:10.000Z' },
-    { id: 'm2', apptId: 'appt-1', author: 'staff', text: 'We will bring dressing kit.', at: '2025-10-01T16:30:00.000Z' },
-  ],
-  'appt-2': [
-    { id: 'm3', apptId: 'appt-2', author: 'system', text: 'Appointment created', at: '2025-10-01T12:05:10.000Z' },
-  ],
-};
-
-const apptService = new MockAppointmentService(initialAppointments, initialThreads);
-
-// ---------- Seed Checklist (task trong NGÀY cho patient, không cần nhập) ----------
-function todayAt(h: number, m: number) {
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d.toISOString();
+// Map backend roles to frontend role concept
+function mapRole(backendRole: string): 'patient' | 'family' {
+  if (backendRole === 'PATIENT') return 'patient';
+  return 'family'; // FAMILY_MEMBER, DOCTOR, NURSE all see "family" view for now
 }
 
-const checklistService = new MockChecklistService({
-  [PATIENT_ID]: [
-    {
-      id: 't1',
-      patientId: PATIENT_ID,
-      text: 'Take morning medication',
-      done: false,
-      createdBy: 'system',
-      createdAt: new Date().toISOString(),
-      dueAt: todayAt(10, 0),
-    },
-    {
-      id: 't2',
-      patientId: PATIENT_ID,
-      text: 'Measure blood pressure',
-      done: false,
-      createdBy: 'system',
-      createdAt: new Date().toISOString(),
-      dueAt: todayAt(11, 0),
-    },
-    {
-      id: 't3',
-      patientId: PATIENT_ID,
-      text: 'Record temperature',
-      done: true,
-      completedAt: todayAt(8, 30),
-      createdBy: 'system',
-      createdAt: new Date().toISOString(),
-      dueAt: todayAt(8, 0),
-    },
-    {
-      id: 't4',
-      patientId: PATIENT_ID,
-      text: 'Take evening pills',
-      done: true,
-      completedAt: todayAt(8, 30),
-      createdBy: 'system',
-      createdAt: new Date().toISOString(),
-      dueAt: todayAt(18, 0),
-    }
-  ],
-});
-
-function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patientId: string; uid: string }) {
+function RootTabs({
+  role,
+  patientId,
+  uid,
+  apptService,
+  checklistService,
+}: {
+  role: 'patient' | 'family';
+  patientId: string;
+  uid: string;
+  apptService: AppointmentService;
+  checklistService: ChecklistService;
+}) {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Home">
-        {() => <HomeScreen role={role} patientId={patientId} />}
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: { backgroundColor: '#1F2937', borderTopColor: 'rgba(255,255,255,0.1)' },
+        tabBarActiveTintColor: '#7FB3D5',
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
+        headerStyle: { backgroundColor: '#161B24' },
+        headerTintColor: '#fff',
+      }}
+    >
+      <Tab.Screen name="Home" options={{ headerShown: false }}>
+        {() => (
+          <HomeScreen
+            role={role}
+            patientId={patientId}
+            appointmentService={apptService}
+            checklistService={checklistService}
+          />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Appointments">
@@ -150,52 +77,148 @@ function RootTabs({ role, patientId, uid }: { role: 'patient' | 'family'; patien
         )}
       </Tab.Screen>
 
-      {/* NEW: Checklist tab (patient daily tasks) */}
       <Tab.Screen name="Checklist">
         {() => (
           <ChecklistScreen
             patientId={patientId}
             uid={uid}
             service={checklistService}
+            role={role}
           />
         )}
+      </Tab.Screen>
+
+      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+        {() => <ProfileScreen />}
+      </Tab.Screen>
+
+      <Tab.Screen name="Chat" options={{ headerShown: false }}>
+        {() => <ChatScreen />}
       </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
-export default function App() {
-  const [role, setRole] = useState<'patient' | 'family'>('family'); // mở app là Family luôn
-  const [uid] = useState<string>('demo-user');
-  const patientId = PATIENT_ID;
+function AuthenticatedApp() {
+  const { user, logout } = useAuth();
+
+  // Derive patientId and role from authenticated user
+  const patientId = String(user!.id);
+  const uid = String(user!.id);
+  const role = mapRole(user!.role);
+
+  // Create API services (memoized so they don't recreate on every render)
+  const apptService = useMemo(() => new AppointmentApiService(), []);
+  const checklistService = useMemo(() => new ChecklistApiService(), []);
+  const visitSummaryService = useMemo(
+    () => new VisitSummaryApiService(patientId),
+    [patientId]
+  );
 
   return (
     <NavigationContainer>
-      {/* Toggle vai trò để demo */}
-      <View style={{ height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ marginRight: 8 }}>Patient</Text>
-        <Switch value={role === 'family'} onValueChange={(v) => setRole(v ? 'family' : 'patient')} />
-        <Text style={{ marginLeft: 8 }}>Family</Text>
-      </View>
-
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: '#161B24' },
+          headerTintColor: '#fff',
+        }}
+      >
         <Stack.Screen name="RootTabs" options={{ headerShown: false }}>
-          {() => <RootTabs role={role} patientId={patientId} uid={uid} />}
+          {() => (
+            <RootTabs
+              role={role}
+              patientId={patientId}
+              uid={uid}
+              apptService={apptService}
+              checklistService={checklistService}
+            />
+          )}
         </Stack.Screen>
-        <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment details' }}>
-          {(props) => (
-            // inject services and patientId
-            <>
-              {/* @ts-ignore component typed separately */}
-              {React.createElement(require('./src/screens/AppointmentDetailScreen').default, {
-                ...props,
-                service: apptService,
-                patientId,
-              })}
-            </>
+
+        <Stack.Screen name="AppointmentDetail" options={{ title: 'Appointment Details' }}>
+          {(props: any) => (
+            <AppointmentDetailScreen
+              route={props.route}
+              service={apptService}
+              patientId={patientId}
+              role={role}
+              visitSummaryService={visitSummaryService}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="PatientAppointment" options={{ title: 'My Appointments' }}>
+          {() => {
+            const PatientAppointmentScreen = require('./src/screens/PatientAppointmentScreen').default;
+            return <PatientAppointmentScreen patientId={patientId} service={apptService} />;
+          }}
+        </Stack.Screen>
+
+        <Stack.Screen name="AppointmentHistory" options={{ title: 'Appointment History' }}>
+          {() => (
+            <AppointmentHistoryScreen
+              patientId={patientId}
+              service={apptService}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="CareVisitSummaries" options={{ title: 'Visit Summaries' }}>
+          {() => (
+            <CareVisitSummariesScreen
+              patientId={patientId}
+              service={visitSummaryService}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="HomecareVisitSummary" options={{ title: 'Visit Summary' }}>
+          {(props: any) => (
+            <HomecareVisitSummaryScreen
+              route={props.route}
+              role={role}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="ProfileInfo" options={{ title: 'My Info' }}>
+          {() => (
+            <View style={{ flex: 1, backgroundColor: '#161B24', padding: 20 }}>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Profile Info</Text>
+              <Text style={{ color: '#fff', marginBottom: 8 }}>Name: {user?.firstName} {user?.lastName}</Text>
+              <Text style={{ color: '#fff', marginBottom: 8 }}>Email: {user?.email}</Text>
+              <Text style={{ color: '#fff', marginBottom: 8 }}>Phone: {user?.phoneNumber || 'N/A'}</Text>
+              <Text style={{ color: '#fff', marginBottom: 8 }}>Role: {user?.role}</Text>
+            </View>
           )}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+function AppContent() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#151A23', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#7FB3D5" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <LoginScreen />;
+  }
+
+  return <AuthenticatedApp />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

@@ -22,28 +22,24 @@ export default function AppointmentsScreen({
   role,
   patientId,
   service,
-  fetchMode,
 }: {
   role: Role;
   patientId: string;
   service: AppointmentService;
   uid: string;
-  fetchMode?: 'patient' | 'staff';
 }) {
   const [items, setItems] = useState<Appointment[]>([]);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
-  const [cursor, setCursor] = useState<Date>(new Date());     // ngày đang xem
+  const [cursor, setCursor] = useState<Date>(new Date());
   const navigation = useNavigation<any>();
 
-  // Load data
+  // Load patient/family appointments
   useEffect(() => {
     let alive = true;
-    const loader = (fetchMode === 'staff' && 'listByStaff' in service)
-      ? (service as any).listByStaff(patientId)
-      : service.listByPatient(patientId);
-    loader.then((rows: Appointment[]) => { if (alive) setItems(rows); });
+    service.listByPatient(patientId)
+      .then((rows: Appointment[]) => { if (alive) setItems(rows); });
     return () => { alive = false; };
-  }, [patientId, service, fetchMode]);
+  }, [patientId, service]);
 
   // Đếm số appointment theo ngày (để hiển thị count trên calendar)
   const countByDay = useMemo(() => {

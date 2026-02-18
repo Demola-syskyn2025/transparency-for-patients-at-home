@@ -20,6 +20,7 @@ import FamilyDashboardScreen from './src/screens/FamilyDashboardScreen';
 // Staff screens
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 import MyPatientsScreen from './src/screens/MyPatientsScreen';
+import StaffScheduleScreen from './src/screens/StaffScheduleScreen';
 
 // Shared screens
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
@@ -117,7 +118,7 @@ function StaffTabs({ staffId, apptService }: any) {
         {() => <MyPatientsScreen staffId={staffId} />}
       </Tab.Screen>
       <Tab.Screen name="Schedule" options={{ title: 'All Appointments' }}>
-        {() => <AppointmentsScreen role="staff" patientId={staffId} service={apptService} uid={staffId} fetchMode="staff" />}
+        {() => <StaffScheduleScreen staffId={staffId} />}
       </Tab.Screen>
       <Tab.Screen name="Profile" options={{ headerShown: false }}>
         {() => <ProfileScreen />}

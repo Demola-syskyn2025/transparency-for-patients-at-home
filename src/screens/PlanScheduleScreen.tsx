@@ -138,6 +138,58 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
     }
   };
 
+  // ── Generate time slots for timetable ─────────────────────
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 18; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  // ── Check staff availability for time slot ─────────────────────
+  const isTimeSlotAvailable = (dayName: string, timeSlot: string): boolean => {
+    // Convert day name to day of week (0=Sunday, 1=Monday, etc.)
+    const dayMap: { [key: string]: number } = {
+      'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6, 'Sun': 0
+    };
+    const dayOfWeek = dayMap[dayName.split(' ')[1]] || 1;
+    
+    // Convert time slot to LocalTime
+    const [hour, minute] = timeSlot.split(':').map(Number);
+    const slotTime = { hour, minute };
+    
+    // For demo purposes, we'll simulate availability based on realistic schedule
+    // In real app, this would call the backend API
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday-Friday
+      if (hour >= 8 && hour < 10) return false; // Hospital rounds
+      if (hour >= 10 && hour < 12) return true;  // Clinic appointments
+      if (hour >= 12 && hour < 13) return false; // Lunch
+      if (hour >= 13 && hour < 14) return false; // Admin work
+      if (hour >= 14 && hour < 17) return true;  // Home visits
+      if (hour >= 17) return false; // After hours
+    } else if (dayOfWeek === 6) { // Saturday
+      return hour >= 8 && hour < 18; // Emergency on-call
+    } else { // Sunday
+      return false; // Off
+    }
+    
+    return false;
+  };
+  const generateWeekDays = () => {
+    const days = [];
+    const startOfWeek = getMonday(monday);
+    for (let i = 0; i < 7; i++) {
+      const day = addDays(startOfWeek, i);
+      days.push(fmtDay(day.toISOString()));
+    }
+    return days;
+  };
+
+  const weekDays = generateWeekDays();
+
   // ── Group suggestions by day ───────────────────────
   const activeSuggestions = data?.suggestions.filter((_, i) => !removedSuggestions.has(i)) ?? [];
   const suggestionsByDay = new Map<string, { index: number; item: SuggestedAppointment }[]>();
@@ -162,6 +214,51 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
     const da = suggestionsByDay.get(a)?.[0]?.item.scheduledAt || existingByDay.get(a)?.[0]?.scheduledAt || '';
     const db = suggestionsByDay.get(b)?.[0]?.item.scheduledAt || existingByDay.get(b)?.[0]?.scheduledAt || '';
     return da.localeCompare(db);
+  });
+
+  // ── Group appointments by day and time slot ─────────────────
+  const timetableData = new Map<string, Map<string, any[]>>();
+  
+  // Initialize all 7 days with empty time slots
+  weekDays.forEach(day => {
+    const daySlots = new Map();
+    timeSlots.forEach(slot => {
+      daySlots.set(slot, []);
+    });
+    timetableData.set(day, daySlots);
+  });
+
+  // Fill in existing appointments
+  existingByDay.forEach((appointments, day) => {
+    const daySlots = timetableData.get(day);
+    if (daySlots) {
+      appointments.forEach(appt => {
+        const time = fmtTime(appt.scheduledAt);
+        if (daySlots.has(time)) {
+          daySlots.get(time)!.push({
+            type: 'existing',
+            data: appt
+          });
+        }
+      });
+    }
+  });
+
+  // Fill in suggested appointments
+  suggestionsByDay.forEach((suggestions, day) => {
+    const daySlots = timetableData.get(day);
+    if (daySlots) {
+      suggestions.forEach(({ item: sg }) => {
+        const time = fmtTime(sg.scheduledAt);
+        if (daySlots.has(time)) {
+          daySlots.get(time)!.push({
+            type: 'suggested',
+            index: suggestions.findIndex(s => s.item === sg),
+            data: sg
+          });
+        }
+      });
+    }
   });
 
   // ── Render ─────────────────────────────────────────
@@ -212,61 +309,86 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
             </View>
           </View>
 
-          {/* Day-by-day schedule */}
-          {sortedDays.map(day => {
-            const existing = existingByDay.get(day) ?? [];
-            const suggested = suggestionsByDay.get(day) ?? [];
+          {/* Timetable View */}
+          <View style={s.timetableContainer}>
+            {/* Timetable Header - Fixed */}
+            <View style={s.timetableHeader}>
+              <View style={s.timeColumnHeader}>
+                <Text style={s.columnHeaderText}>Time</Text>
+              </View>
+              {weekDays.map(day => (
+                <View key={day} style={s.dayColumnHeader}>
+                  <Text style={s.columnHeaderText}>{day}</Text>
+                </View>
+              ))}
+            </View>
 
-            return (
-              <View key={day} style={s.daySection}>
-                <Text style={s.daySectionTitle}>{day}</Text>
-
-                {/* Existing appointments */}
-                {existing.map(a => (
-                  <View key={`e-${a.id}`} style={s.existingCard}>
-                    <View style={s.cardRow}>
-                      <Text style={s.cardTime}>{fmtTime(a.scheduledAt)}</Text>
-                      <Text style={s.cardDuration}>{a.estimatedDurationMinutes}m</Text>
-                      <View style={[s.statusBadge, { backgroundColor: STATUS_COLORS[a.status]?.bg ?? 'rgba(255,255,255,0.1)' }]}>
-                        <Text style={[s.statusText, { color: STATUS_COLORS[a.status]?.fg ?? '#fff' }]}>{a.status}</Text>
-                      </View>
+            {/* Timetable Body - Scrollable */}
+            <ScrollView 
+              showsVerticalScrollIndicator={true}
+              style={s.timetableScrollContainer}
+              contentContainerStyle={s.timetableScrollContent}
+            >
+              <View style={s.timetableBody}>
+                {timeSlots.map(slot => (
+                  <View key={slot} style={s.timetableRow}>
+                    {/* Time column - Fixed width */}
+                    <View style={s.timeColumn}>
+                      <Text style={s.timeText}>{slot}</Text>
                     </View>
-                    <View style={s.cardRow}>
-                      <Text style={s.typeIcon}>{TYPE_ICONS[a.type] ?? '📋'}</Text>
-                      <Text style={s.cardPatient}>{a.patient.firstName} {a.patient.lastName}</Text>
-                    </View>
-                    {a.notes && <Text style={s.cardNotes} numberOfLines={1}>{a.notes}</Text>}
-                  </View>
-                ))}
-
-                {/* Suggested appointments */}
-                {suggested.map(({ index, item: sg }) => (
-                  <View key={`s-${index}`} style={s.suggestedCard}>
-                    <View style={s.newBadge}>
-                      <Text style={s.newBadgeText}>SUGGESTED</Text>
-                    </View>
-                    <View style={s.cardRow}>
-                      <Text style={s.cardTime}>{fmtTime(sg.scheduledAt)}</Text>
-                      <Text style={s.cardDuration}>{sg.estimatedDurationMinutes}m</Text>
-                      <Text style={s.typeIcon}>{TYPE_ICONS[sg.type] ?? '📋'}</Text>
-                    </View>
-                    <Text style={s.cardPatient}>{sg.patientName}</Text>
-                    <Text style={s.cardReason}>{sg.reason}</Text>
-                    {sg.location && <Text style={s.cardLocation}>📍 {sg.location}</Text>}
-                    <Pressable style={s.removeBtn} onPress={() => removeSuggestion(index)}>
-                      <Text style={s.removeBtnText}>✕ Remove</Text>
-                    </Pressable>
+                    
+                    {/* Day columns - All 7 days with fixed width */}
+                    {weekDays.map(day => {
+                      const daySlots = timetableData.get(day);
+                      const slotAppointments = daySlots?.get(slot) || [];
+                      const isAvailable = isTimeSlotAvailable(day, slot);
+                      
+                      return (
+                        <View key={`${day}-${slot}`} style={[s.dayColumn, !isAvailable && s.unavailableColumn]}>
+                          {slotAppointments.map((appt, index) => {
+                            if (appt.type === 'existing') {
+                              const existing = appt.data as AppointmentDto;
+                              return (
+                                <View key={index} style={s.existingSlot}>
+                                  <Text style={s.slotPatient}>{existing.patient.firstName} {existing.patient.lastName}</Text>
+                                  <Text style={s.slotType}>{existing.type.replace(/_/g, ' ')}</Text>
+                                </View>
+                              );
+                            } else if (appt.type === 'suggested') {
+                              const suggested = appt.data as SuggestedAppointment;
+                              return (
+                                <View key={index} style={s.suggestedSlot}>
+                                  <View style={s.suggestedBadge}>
+                                    <Text style={s.suggestedBadgeText}>NEW</Text>
+                                  </View>
+                                  <Text style={s.slotPatient}>{suggested.patientName}</Text>
+                                  <Text style={s.slotType}>{suggested.type.replace(/_/g, ' ')}</Text>
+                                  <Pressable 
+                                    style={s.removeSlotBtn} 
+                                    onPress={() => removeSuggestion(appt.index)}
+                                  >
+                                    <Text style={s.removeSlotBtnText}>✕</Text>
+                                  </Pressable>
+                                </View>
+                              );
+                            }
+                            return null;
+                          })}
+                          
+                          {/* Show unavailable indicator if no appointments and slot is unavailable */}
+                          {slotAppointments.length === 0 && !isAvailable && (
+                            <View style={s.unavailableSlot}>
+                              <Text style={s.unavailableText}>Unavailable</Text>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
                 ))}
               </View>
-            );
-          })}
-
-          {sortedDays.length === 0 && (
-            <View style={s.emptyBox}>
-              <Text style={s.emptyText}>No appointments for this period</Text>
-            </View>
-          )}
+            </ScrollView>
+          </View>
 
           {/* Unscheduled patients */}
           {data.unscheduledPatients.length > 0 && (
@@ -391,4 +513,29 @@ const s = StyleSheet.create({
   loadingText: { color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 14 },
   emptyText: { color: 'rgba(255,255,255,0.4)', fontSize: 14, textAlign: 'center' },
   emptyBox: { padding: 40, alignItems: 'center' },
+
+  // Timetable styles
+  timetableContainer: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, marginVertical: 16, overflow: 'hidden' },
+  timetableScrollContainer: { maxHeight: 450, flex: 1 },
+  timetableScrollContent: { paddingBottom: 20 },
+  timetableHeader: { flexDirection: 'row', backgroundColor: 'rgba(127,179,213,0.1)', borderBottomWidth: 1, borderBottomColor: 'rgba(127,179,213,0.2)', position: 'sticky', top: 0, zIndex: 1 },
+  timeColumnHeader: { width: 70, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderRightColor: 'rgba(127,179,213,0.2)' },
+  dayColumnHeader: { width: 120, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderRightColor: 'rgba(127,179,213,0.2)' },
+  columnHeaderText: { color: '#7FB3D5', fontSize: 12, fontWeight: '700', textAlign: 'center' },
+  timetableBody: { flexDirection: 'column' },
+  timetableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)', minHeight: 60 },
+  timeColumn: { width: 70, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.02)', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' },
+  timeText: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  dayColumn: { width: 120, padding: 4, backgroundColor: 'rgba(255,255,255,0.01)', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' },
+  unavailableColumn: { backgroundColor: 'rgba(239,68,68,0.15)', borderRightWidth: 1, borderRightColor: 'rgba(239,68,68,0.3)' },
+  existingSlot: { backgroundColor: 'rgba(127,179,213,0.15)', borderRadius: 6, padding: 6, marginBottom: 4, borderLeftWidth: 2, borderLeftColor: '#7FB3D5' },
+  suggestedSlot: { backgroundColor: 'rgba(34,197,94,0.15)', borderRadius: 6, padding: 6, marginBottom: 4, borderLeftWidth: 2, borderLeftColor: '#22C55E', position: 'relative' },
+  unavailableSlot: { backgroundColor: 'rgba(239,68,68,0.2)', borderRadius: 6, padding: 6, marginBottom: 4, borderLeftWidth: 2, borderLeftColor: 'rgba(239,68,68,0.5)', alignItems: 'center', justifyContent: 'center' },
+  unavailableText: { color: 'rgba(239,68,68,0.8)', fontSize: 9, fontWeight: '600', textAlign: 'center' },
+  suggestedBadge: { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(34,197,94,0.3)', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 4 },
+  suggestedBadgeText: { color: '#22C55E', fontSize: 8, fontWeight: '800' },
+  slotPatient: { color: '#fff', fontSize: 11, fontWeight: '600', marginBottom: 2 },
+  slotType: { color: 'rgba(255,255,255,0.6)', fontSize: 10 },
+  removeSlotBtn: { position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(239,68,68,0.2)', alignItems: 'center', justifyContent: 'center' },
+  removeSlotBtnText: { color: '#EF4444', fontSize: 10, fontWeight: '700' },
 });

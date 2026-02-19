@@ -65,7 +65,6 @@ const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
 // ── Main Component ───────────────────────────────────
 export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
   const [weekOffset, setWeekOffset] = useState(1); // default: next week
-  const [maxWeekOffset] = useState(3); // max: 3 weeks ahead
   const [data, setData] = useState<ScheduleSuggestionResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -267,12 +266,8 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
     <View style={s.container}>
       {/* Period selector */}
       <View style={s.periodRow}>
-        <Pressable 
-          style={[s.arrowBtn, weekOffset <= 1 && s.arrowBtnDisabled]} 
-          onPress={() => weekOffset > 1 && setWeekOffset(w => w - 1)}
-          disabled={weekOffset <= 1}
-        >
-          <Text style={[s.arrowText, weekOffset <= 1 && s.arrowTextDisabled]}>◀</Text>
+        <Pressable style={s.arrowBtn} onPress={() => setWeekOffset(w => w - 1)}>
+          <Text style={s.arrowText}>◀</Text>
         </Pressable>
         <View style={s.periodCenter}>
           <Text style={s.periodLabel}>
@@ -282,12 +277,8 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
             {weekOffset === 0 ? 'This week' : weekOffset === 1 ? 'Next week' : `${weekOffset} weeks ahead`}
           </Text>
         </View>
-        <Pressable 
-          style={[s.arrowBtn, weekOffset >= maxWeekOffset && s.arrowBtnDisabled]} 
-          onPress={() => weekOffset < maxWeekOffset && setWeekOffset(w => w + 1)}
-          disabled={weekOffset >= maxWeekOffset}
-        >
-          <Text style={[s.arrowText, weekOffset >= maxWeekOffset && s.arrowTextDisabled]}>▶</Text>
+        <Pressable style={s.arrowBtn} onPress={() => setWeekOffset(w => w + 1)}>
+          <Text style={s.arrowText}>▶</Text>
         </Pressable>
       </View>
 
@@ -462,9 +453,7 @@ const s = StyleSheet.create({
   // Period selector
   periodRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 12, paddingBottom: 8 },
   arrowBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center' },
-  arrowBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.03)' },
   arrowText: { color: '#7FB3D5', fontSize: 16 },
-  arrowTextDisabled: { color: 'rgba(127,179,213,0.3)' },
   periodCenter: { flex: 1, alignItems: 'center' },
   periodLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
   periodSub: { color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 },

@@ -88,9 +88,9 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
   // Calculate target Monday: add weekOffset weeks to current Monday, then ensure it's future
   const targetMonday = addDays(currentMonday, weekOffset * 7);
   const monday = targetMonday <= currentMonday ? addDays(currentMonday, 7) : targetMonday;
-  const friday = addDays(monday, 4);
-  const weekDates = [0, 1, 2, 3, 4].map(i => addDays(monday, i));
-  const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const sunday = addDays(monday, 6);
+  const weekDates = [0, 1, 2, 3, 4, 5, 6].map(i => addDays(monday, i));
+  const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // Fetch existing plan for the selected week
   const fetchPlan = useCallback(async () => {
@@ -210,7 +210,7 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
         </Pressable>
         <View style={s.periodCenter}>
           <Text style={s.periodLabel}>
-            {fmtDate(monday)} — {fmtDate(friday)}
+            {fmtDate(monday)} — {fmtDate(sunday)}
           </Text>
           <Text style={s.periodSub}>
             {weekOffset === 0 ? 'This week' : weekOffset === 1 ? 'Next week' : `${weekOffset} weeks ahead`}

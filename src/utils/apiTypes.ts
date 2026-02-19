@@ -9,7 +9,9 @@ export type AppointmentStatus =
   | 'CANCELLED'
   | 'RESCHEDULED';
 
-export type AppointmentType = 'HOME_VISIT' | 'HOSPITAL_VISIT' | 'TELECONSULTATION';
+export type AppointmentType = 'HOME_VISIT' | 'HOSPITAL_VISIT' | 'TELECONSULTATION' | 'OFFICE_WORK';
+
+export type PlanStatus = 'DRAFT' | 'CONFIRMED';
 
 export type UserRole = 'PATIENT' | 'DOCTOR' | 'NURSE' | 'FAMILY_MEMBER';
 
@@ -44,6 +46,9 @@ export interface AppointmentDto {
   notes: string | null;
   location: string | null;
   createdAt: string;
+  planId: number | null;
+  isGenerated: boolean;
+  isLocked: boolean;
 }
 
 export interface CreateAppointmentRequest {
@@ -134,4 +139,46 @@ export interface BatchCreateResponse {
   totalErrors: number;
   created: AppointmentDto[];
   errors: string[];
+}
+
+// ── Schedule Plan ────────────────────────────────
+export interface SchedulePlanDto {
+  id: number;
+  weekStartDate: string;
+  status: PlanStatus;
+  createdBy: UserDto | null;
+  createdAt: string;
+  confirmedAt: string | null;
+  appointments: AppointmentDto[];
+  violations: string[];
+}
+
+export interface PlanSummaryDto {
+  planId: number;
+  weekStartDate: string;
+  status: PlanStatus;
+  staffSummaries: StaffWeekSummaryDto[];
+  totalVisits: number;
+  totalOfficeBlocks: number;
+  violations: string[];
+}
+
+export interface StaffWeekSummaryDto {
+  staffId: number;
+  staffName: string;
+  role: string;
+  dayOff: string | null;
+  totalWorkMinutes: number;
+  totalVisits: number;
+  totalOfficeBlocks: number;
+  dailyBreakdown: DayBreakdownDto[];
+}
+
+export interface DayBreakdownDto {
+  date: string;
+  dayOfWeek: string;
+  isDayOff: boolean;
+  workMinutes: number;
+  visits: number;
+  officeMinutes: number;
 }

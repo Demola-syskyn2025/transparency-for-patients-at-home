@@ -82,10 +82,10 @@ export default function LoginScreen() {
 
         <View style={styles.hint}>
           <Text style={styles.hintTitle}>Test Accounts</Text>
-          <Text style={styles.hintText}>Doctor: dr.smith@hospital.fi / password123</Text>
-          <Text style={styles.hintText}>Nurse: nurse.jones@hospital.fi / password123</Text>
-          <Text style={styles.hintText}>Patient: patient1@email.com / password123</Text>
-          <Text style={styles.hintText}>Family: family1@email.com / password123</Text>
+          <Text style={styles.hintText}>Doctor: dr.sarah.johnson@hospital.com / password</Text>
+          <Text style={styles.hintText}>Nurse: nurse.emily.davis@hospital.com / password</Text>
+          <Text style={styles.hintText}>Patient: patient.john.smith@email.com / password</Text>
+          <Text style={styles.hintText}>Family: family.jane.smith@email.com / password</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

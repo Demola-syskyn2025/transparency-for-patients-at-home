@@ -14,8 +14,15 @@ import { generatePlan, confirmPlan, getPlanByWeek } from '../services/schedulePl
 
 // ── Helpers ──────────────────────────────────────────
 function getMonday(d: Date): Date {
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const day = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  let diff;
+  if (day === 0) {
+    // If Sunday, go to next Monday (add 1 day)
+    diff = d.getDate() + 1;
+  } else {
+    // Otherwise, go back to Monday of this week
+    diff = d.getDate() - day + 1;
+  }
   const mon = new Date(d);
   mon.setDate(diff);
   mon.setHours(0, 0, 0, 0);
@@ -29,7 +36,11 @@ function addDays(d: Date, n: number): Date {
 }
 
 function fmtDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  // Use local date components to avoid timezone issues
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function fmtTime(iso: string): string {
@@ -71,7 +82,12 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
   const [confirming, setConfirming] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<number | null>(null);
 
-  const monday = getMonday(addDays(new Date(), weekOffset * 7));
+  // Always ensure we're looking at a future week (at least next Monday)
+  const today = new Date();
+  const currentMonday = getMonday(today);
+  // Calculate target Monday: add weekOffset weeks to current Monday, then ensure it's future
+  const targetMonday = addDays(currentMonday, weekOffset * 7);
+  const monday = targetMonday <= currentMonday ? addDays(currentMonday, 7) : targetMonday;
   const friday = addDays(monday, 4);
   const weekDates = [0, 1, 2, 3, 4].map(i => addDays(monday, i));
   const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -96,11 +112,14 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const newPlan = await generatePlan(fmtDate(monday));
+      const weekStart = fmtDate(monday);
+      console.log('Generating plan for date:', weekStart, 'day:', monday.getDay());
+      const newPlan = await generatePlan(weekStart);
       setPlan(newPlan);
       setSelectedStaff(null);
     } catch (e: any) {
       const msg = e?.response?.data?.error || 'Failed to generate plan';
+      console.error('Generate plan error:', e?.response?.data);
       Alert.alert('Error', msg);
     } finally {
       setGenerating(false);

@@ -42,6 +42,8 @@ import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 
 import MyPatientsScreen from './src/screens/MyPatientsScreen';
 
+import PlanScheduleScreen from './src/screens/PlanScheduleScreen';
+
 
 
 // Shared screens
@@ -231,6 +233,12 @@ function StaffTabs({ staffId, apptService }: any) {
       <Tab.Screen name="My Patients">
 
         {() => <MyPatientsScreen staffId={staffId} />}
+
+      </Tab.Screen>
+
+      <Tab.Screen name="Plan" options={{ title: 'Plan Week' }}>
+
+        {() => <PlanScheduleScreen staffId={staffId} />}
 
       </Tab.Screen>
 

@@ -42,7 +42,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Deepen</Text>
+        <Text style={styles.title}>HomeCareVisit</Text>
         <Text style={styles.subtitle}>Home Care Transparency</Text>
 
         <View style={styles.form}>
@@ -81,11 +81,11 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.hint}>
-          <Text style={styles.hintTitle}>Test Accounts (password: password123)</Text>
-          <Text style={styles.hintText}>Doctor: dr.smith@hospital.fi</Text>
-          <Text style={styles.hintText}>Nurse: nurse.jones@hospital.fi</Text>
-          <Text style={styles.hintText}>Patient: patient1@email.com</Text>
-          <Text style={styles.hintText}>Family: family1@email.com</Text>
+          <Text style={styles.hintTitle}>Test Accounts (password: password)</Text>
+          <Text style={styles.hintText}>Doctor: dr.sarah.johnson@hospital.com</Text>
+          <Text style={styles.hintText}>Nurse: nurse.emily.davis@hospital.com</Text>
+          <Text style={styles.hintText}>Patient: patient.john.smith@email.com</Text>
+          <Text style={styles.hintText}>Family: family.jane.smith@email.com</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

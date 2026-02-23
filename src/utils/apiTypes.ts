@@ -77,6 +77,15 @@ export interface CareAssignmentDto {
   createdAt: string;
 }
 
+// ── Family Patient Link ───────────────────────────
+export interface FamilyPatientLinkDto {
+  id: number;
+  familyMember: UserDto;
+  patient: UserDto;
+  relationship: string;
+  createdAt: string;
+}
+
 // ── Visit Summary ──────────────────────────────────
 export interface VisitSummaryDto {
   id: number;
@@ -97,8 +106,19 @@ export interface RescheduleRequestDto {
   reason: string;
   preferredDate1: string | null;
   preferredDate2: string | null;
+  preferredDate3: string | null;
   status: RescheduleStatus;
+  requestType: 'RESCHEDULE' | 'CANCEL';
   createdAt: string;
+}
+
+export interface CreateRescheduleRequest {
+  appointmentId: number;
+  reason?: string;
+  requestType: 'RESCHEDULE' | 'CANCEL';
+  preferredDate1?: string;
+  preferredDate2?: string;
+  preferredDate3?: string;
 }
 
 // ── Schedule Suggestion ────────────────────────────

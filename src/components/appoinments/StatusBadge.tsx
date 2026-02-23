@@ -8,25 +8,19 @@ import type { AppointmentStatus } from '../../utils/types';
 
 
 
-const stylesByStatus: Record<AppointmentStatus, {bg: string; fg: string; label: string}> = {
-
+const stylesByStatus: Record<string, {bg: string; fg: string; label: string}> = {
   scheduled:  { bg: '#E6F4FE', fg: '#093B63', label: 'Scheduled' },
-
   delayed:    { bg: '#FFF4E5', fg: '#6B3A00', label: 'Delayed' },
-
   rescheduled:{ bg: '#F3E8FF', fg: '#4B1D95', label: 'Rescheduled' },
-
   completed:  { bg: '#E7F6EC', fg: '#0B3D2E', label: 'Completed' },
-
   cancelled:  { bg: '#FDE8E8', fg: '#7A0A0A', label: 'Cancelled' },
-
 };
 
+const defaultStyle = { bg: '#E6F4FE', fg: '#093B63', label: 'Scheduled' };
 
-
-export default function StatusBadge({ status = 'scheduled' as AppointmentStatus }) {
-
-  const s = stylesByStatus[status];
+export default function StatusBadge({ status = 'scheduled' }: { status?: string }) {
+  const normalizedStatus = (status || 'scheduled').toLowerCase();
+  const s = stylesByStatus[normalizedStatus] || defaultStyle;
 
   return (
 

@@ -64,6 +64,8 @@ import CareVisitSummariesScreen from './src/screens/CareVisitSummariesScreen';
 
 import HomecareVisitSummaryScreen from './src/screens/HomecareVisitSummaryScreen';
 
+import RequestRescheduleScreen from './src/screens/RequestRescheduleScreen';
+
 
 
 import { AppointmentApiService } from './src/services/appointmentApi';
@@ -309,7 +311,7 @@ function FamilyTabs({ userId, apptService, visitSummaryService }: any) {
 
       <Tab.Screen name="Summaries" options={{ title: 'Visit Summaries', tabBarIcon: ({ focused }) => <ChecklistIcon focused={focused} /> }}>
 
-        {() => <CareVisitSummariesScreen patientId={userId} service={visitSummaryService} />}
+        {() => <CareVisitSummariesScreen />}
 
       </Tab.Screen>
 
@@ -507,7 +509,7 @@ function AuthenticatedApp() {
 
         <Stack.Screen name="CareVisitSummaries" options={{ title: 'Visit Summaries' }}>
 
-          {() => <CareVisitSummariesScreen patientId={userId} service={visitSummaryService} />}
+          {() => <CareVisitSummariesScreen />}
 
         </Stack.Screen>
 
@@ -542,6 +544,12 @@ function AuthenticatedApp() {
         <Stack.Screen name="PatientOverview" options={({ route }: any) => ({ title: route.params?.patientName || 'Patient' })}>
 
           {(props: any) => <PatientOverviewScreen route={props.route} />}
+
+        </Stack.Screen>
+
+        <Stack.Screen name="RequestReschedule" options={{ title: 'Request Change' }}>
+
+          {(props: any) => <RequestRescheduleScreen route={props.route} />}
 
         </Stack.Screen>
 

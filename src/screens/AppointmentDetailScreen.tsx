@@ -115,7 +115,9 @@ export default function AppointmentDetailScreen({
   const scheduledDate = new Date(appt.scheduledAt);
   const isCompleted = appt.status === 'COMPLETED';
   const isCancelled = appt.status === 'CANCELLED';
-  const canReschedule = !isCompleted && !isCancelled && (role === 'patient' || role === 'family');
+  const hoursUntilAppt = (scheduledDate.getTime() - Date.now()) / (1000 * 60 * 60);
+  const canRequestChange = !isCompleted && !isCancelled && (role === 'patient' || role === 'family') && hoursUntilAppt >= 48;
+  const showChangeWarning = !isCompleted && !isCancelled && (role === 'patient' || role === 'family') && hoursUntilAppt < 48 && hoursUntilAppt > 0;
   const canUpdateStatus = role === 'staff' && !isCancelled;
 
   return (
@@ -235,13 +237,26 @@ export default function AppointmentDetailScreen({
       )}
 
       {/* ── Patient/Family Actions ── */}
-      {canReschedule && (
-        <Pressable
-          style={styles.rescheduleBtn}
-          onPress={() => navigation.navigate('RequestReschedule', { appointmentId: appt.id })}
-        >
-          <Text style={styles.rescheduleBtnText}>Request Reschedule</Text>
-        </Pressable>
+      {canRequestChange && (
+        <View style={styles.patientActionsCard}>
+          <Text style={styles.cardLabel}>REQUEST CHANGES</Text>
+          <Text style={styles.actionHint}>You can request to reschedule or cancel this appointment.</Text>
+          <Pressable
+            style={styles.rescheduleBtn}
+            onPress={() => navigation.navigate('RequestReschedule', { appointmentId: appt.id })}
+          >
+            <Text style={styles.rescheduleBtnText}>Request Change or Cancel</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {showChangeWarning && (
+        <View style={styles.warningCard}>
+          <Text style={styles.warningText}>
+            Changes can only be requested 48+ hours before the appointment.
+            Contact your care provider directly for urgent changes.
+          </Text>
+        </View>
       )}
 
       {/* View full summary link for completed */}
@@ -346,11 +361,23 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: '#151A23', fontSize: 15, fontWeight: '700' },
 
   // Patient Actions
-  rescheduleBtn: {
-    margin: 16, marginBottom: 0, padding: 14, borderRadius: 12,
-    backgroundColor: 'rgba(168,85,247,0.15)', alignItems: 'center',
+  patientActionsCard: {
+    backgroundColor: 'rgba(42,54,71,0.6)', margin: 16, marginBottom: 0, borderRadius: 14, padding: 18,
   },
-  rescheduleBtnText: { color: '#A855F7', fontSize: 15, fontWeight: '700' },
+  actionHint: {
+    color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 12, lineHeight: 18,
+  },
+  rescheduleBtn: {
+    padding: 14, borderRadius: 12,
+    backgroundColor: 'rgba(127,179,213,0.15)', alignItems: 'center',
+  },
+  rescheduleBtnText: { color: '#7FB3D5', fontSize: 15, fontWeight: '700' },
+  warningCard: {
+    backgroundColor: 'rgba(245,158,11,0.1)', margin: 16, marginBottom: 0, borderRadius: 12, padding: 14,
+  },
+  warningText: {
+    color: 'rgba(245,158,11,0.9)', fontSize: 13, lineHeight: 18, textAlign: 'center',
+  },
 
   linkBtn: { margin: 16, marginBottom: 0, alignItems: 'center' },
   linkBtnText: { color: '#7FB3D5', fontSize: 14, fontWeight: '600' },

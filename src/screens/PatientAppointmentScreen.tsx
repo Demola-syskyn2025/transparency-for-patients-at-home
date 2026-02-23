@@ -3,8 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import StatusBadge from '../components/appoinments/StatusBadge';
-import type { AppointmentService } from '../services/appointments';
-import type { Appointment } from '../utils/types';
+import type { AppointmentDto } from '../utils/apiTypes';
+import type { AppointmentApiService } from '../services/appointmentApi';
 
 // Custom Appointment Icon Component (based on SVG design)
 const AppointmentIcon = () => (
@@ -28,13 +28,13 @@ export default function PatientAppointmentScreen({
   service,
 }: {
   patientId: string;
-  service: AppointmentService;
+  service: AppointmentApiService;
 }) {
   const navigation = useNavigation<any>();
-  const [items, setItems] = useState<Appointment[] | null>(null);
+  const [items, setItems] = useState<AppointmentDto[] | null>(null);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDto | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -46,8 +46,8 @@ export default function PatientAppointmentScreen({
     if (!items) return null;
     const now = new Date();
     return [...items]
-      .filter(a => new Date(a.startAt) >= now)
-      .sort((a,b)=> new Date(a.startAt).getTime() - new Date(b.startAt).getTime())[0] || null;
+      .filter(a => new Date(a.scheduledAt) >= now)
+      .sort((a,b)=> new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0] || null;
   }, [items]);
 
   // Set initial selected appointment to next appointment
@@ -63,7 +63,7 @@ export default function PatientAppointmentScreen({
     
     // Find appointment for this date
     const appointment = items.find(a => {
-      const aDate = new Date(a.startAt);
+      const aDate = new Date(a.scheduledAt);
       return aDate.toDateString() === date.toDateString();
     });
     
@@ -90,7 +90,7 @@ export default function PatientAppointmentScreen({
   }
 
   const displayedAppt = selectedAppointment || nextAppt;
-  const apptDate = displayedAppt ? new Date(displayedAppt.startAt) : currentDate;
+  const apptDate = displayedAppt ? new Date(displayedAppt.scheduledAt) : currentDate;
   const displayMonth = currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 
   // Navigation functions
@@ -130,7 +130,7 @@ export default function PatientAppointmentScreen({
       currentDateInLoop.setDate(monday.getDate() + i);
       
       const hasAppointment = items?.some(a => {
-        const aDate = new Date(a.startAt);
+        const aDate = new Date(a.scheduledAt);
         return aDate.toDateString() === currentDateInLoop.toDateString();
       });
       
@@ -139,7 +139,7 @@ export default function PatientAppointmentScreen({
         date: currentDateInLoop,
         isEmpty: false,
         hasAppointment,
-        isSelected: displayedAppt && currentDateInLoop.toDateString() === new Date(displayedAppt.startAt).toDateString()
+        isSelected: displayedAppt && currentDateInLoop.toDateString() === new Date(displayedAppt.scheduledAt).toDateString()
       });
     }
     return days;
@@ -166,7 +166,7 @@ export default function PatientAppointmentScreen({
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDate = new Date(year, month, i);
       const hasAppointment = items?.some(a => {
-        const aDate = new Date(a.startAt);
+        const aDate = new Date(a.scheduledAt);
         return aDate.getDate() === i && aDate.getMonth() === month && aDate.getFullYear() === year;
       });
       days.push({ 
@@ -174,20 +174,19 @@ export default function PatientAppointmentScreen({
         date: dayDate,
         isEmpty: false,
         hasAppointment,
-        isSelected: displayedAppt && i === new Date(displayedAppt.startAt).getDate() && month === new Date(displayedAppt.startAt).getMonth() && year === new Date(displayedAppt.startAt).getFullYear()
+        isSelected: displayedAppt && i === new Date(displayedAppt.scheduledAt).getDate() && month === new Date(displayedAppt.scheduledAt).getMonth() && year === new Date(displayedAppt.scheduledAt).getFullYear()
       });
     }
     return days;
   };
 
   const calendarDays = viewMode === 'week' ? generateWeekDays() : generateMonthDays();
-  const phoneNumber = displayedAppt?.assignedStaff?.[0]?.phone;
-  const etaStart = displayedAppt?.etaStart ? new Date(displayedAppt.etaStart) : null;
-  const etaEnd = displayedAppt?.etaEnd ? new Date(displayedAppt.etaEnd) : null;
-  const etaUpdatedAt = displayedAppt?.etaUpdatedAt ? new Date(displayedAppt.etaUpdatedAt) : null;
-  const apptEndRef = displayedAppt?.endAt ? new Date(displayedAppt.endAt) : apptDate;
+  const staffName = displayedAppt?.staff ? `${displayedAppt.staff.firstName} ${displayedAppt.staff.lastName}` : 'N/A';
+  const staffPhone = displayedAppt?.staff?.phoneNumber || 'N/A';
+  // Calculate end time from scheduledAt + estimatedDurationMinutes
+  const apptEndRef = displayedAppt ? new Date(new Date(displayedAppt.scheduledAt).getTime() + (displayedAppt.estimatedDurationMinutes * 60 * 1000)) : apptDate;
   const isPast = apptEndRef.getTime() < Date.now();
-  const showCompleted = isPast && (displayedAppt?.status === 'scheduled' || displayedAppt?.status === 'rescheduled');
+  const showCompleted = isPast && (displayedAppt?.status === 'SCHEDULED' || displayedAppt?.status === 'RESCHEDULED');
 
   return (
     <View style={styles.container}>
@@ -260,8 +259,8 @@ export default function PatientAppointmentScreen({
         <Text style={styles.detailsTitle}>Details</Text>
         
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Doctor:</Text>
-          <Text style={styles.detailValue}>{displayedAppt.assignedStaff?.[0]?.name || 'N/A'}</Text>
+          <Text style={styles.detailLabel}>Staff:</Text>
+          <Text style={styles.detailValue}>{staffName}</Text>
         </View>
 
         <View style={styles.detailRow}>
@@ -282,47 +281,40 @@ export default function PatientAppointmentScreen({
           <Text style={styles.detailLabel}>Status:</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ marginRight: 8 }}>
-              <StatusBadge status={displayedAppt.status ?? 'scheduled'} />
+              <StatusBadge status={displayedAppt.status} />
             </View>
             {showCompleted ? <StatusBadge status={'completed'} /> : null}
           </View>
         </View>
 
-        {etaStart && etaEnd && (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>ETA:</Text>
-            <Text style={styles.detailValue}>
-              {etaStart.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-              {' – '}
-              {etaEnd.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-              {etaUpdatedAt ? `  (updated ${etaUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})` : ''}
-            </Text>
-          </View>
-        )}
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Duration:</Text>
+          <Text style={styles.detailValue}>{displayedAppt.estimatedDurationMinutes} min</Text>
+        </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Type:</Text>
-          <Text style={styles.detailValue}>{displayedAppt.title}</Text>
+          <Text style={styles.detailValue}>{displayedAppt.type?.replace('_', ' ') || 'N/A'}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Phone Number:</Text>
-          <Text style={styles.detailValue}>{phoneNumber || 'N/A'}</Text>
+          <Text style={styles.detailValue}>{staffPhone}</Text>
         </View>
 
         {displayedAppt.notes && (
           <View style={[styles.detailRow, { flexDirection: 'column', alignItems: 'flex-start' }]}>
-            <Text style={styles.detailLabel}>Medicine:</Text>
+            <Text style={styles.detailLabel}>Notes:</Text>
             <Text style={styles.detailValue}>{displayedAppt.notes}</Text>
           </View>
         )}
 
-        <View style={styles.doctorNoteContainer}>
-          <Text style={styles.doctorNoteLabel}>Doctor note:</Text>
-          <Text style={styles.doctorNoteText}>
-            {displayedAppt.reasonForChange || "Please DO NOT drink coffee or eat solid food 3hr before appointment"}
-          </Text>
-        </View>
+        {displayedAppt.location && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Location:</Text>
+            <Text style={styles.detailValue}>{displayedAppt.location}</Text>
+          </View>
+        )}
       </View>
       </ScrollView>
     </View>

@@ -1,26 +1,28 @@
 // src/screens/PlanScheduleScreen.tsx
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
   ActivityIndicator,
-  ScrollView,
   Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-import type { SchedulePlanDto, AppointmentDto } from '../utils/apiTypes';
-import { generatePlan, confirmPlan, getPlanByWeek } from '../services/schedulePlanApi';
+import { confirmPlan, generatePlan, getPlanByWeek } from '../services/schedulePlanApi';
+import type { AppointmentDto, SchedulePlanDto } from '../utils/apiTypes';
 
 // ── Helpers ──────────────────────────────────────────
 function getMonday(d: Date): Date {
-  const day = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const day = d.getDay(); 
   let diff;
   if (day === 0) {
-    // If Sunday, go to next Monday (add 1 day)
+    
     diff = d.getDate() + 1;
   } else {
-    // Otherwise, go back to Monday of this week
+  
     diff = d.getDate() - day + 1;
   }
   const mon = new Date(d);
@@ -36,11 +38,14 @@ function addDays(d: Date, n: number): Date {
 }
 
 function fmtDate(d: Date): string {
-  // Use local date components to avoid timezone issues
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function fmtDateShort(d: Date): string {
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 function fmtTime(iso: string): string {
@@ -202,22 +207,22 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
 
   // ── Render ─────────────────────────────────────────
   return (
-    <View style={s.container}>
+    <LinearGradient colors={['#6294A1', '#151A23']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.29]} style={s.container}>
       {/* Week selector */}
       <View style={s.periodRow}>
         <Pressable style={s.arrowBtn} onPress={() => setWeekOffset(w => w - 1)}>
-          <Text style={s.arrowText}>◀</Text>
+          <Ionicons name="chevron-back" size={24} color="#7FB3D5" />
         </Pressable>
         <View style={s.periodCenter}>
           <Text style={s.periodLabel}>
-            {fmtDate(monday)} — {fmtDate(sunday)}
+            {fmtDateShort(monday)} — {fmtDateShort(sunday)}
           </Text>
           <Text style={s.periodSub}>
             {weekOffset === 0 ? 'This week' : weekOffset === 1 ? 'Next week' : `${weekOffset} weeks ahead`}
           </Text>
         </View>
         <Pressable style={s.arrowBtn} onPress={() => setWeekOffset(w => w + 1)}>
-          <Text style={s.arrowText}>▶</Text>
+          <Ionicons name="chevron-forward" size={24} color="#7FB3D5" />
         </Pressable>
       </View>
 
@@ -272,7 +277,7 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
               <Text style={s.summaryLabel}>Staff{'\n'}Members</Text>
             </View>
             <View style={s.summaryItem}>
-              <Text style={[s.summaryNum, { color: plan.violations.length > 0 ? '#F59E0B' : '#22C55E' }]}>
+              <Text style={[s.summaryNum, { color: plan.violations.length > 0 ? '#F59E0B' : '#7FB3D5' }]}>
                 {plan.violations.length}
               </Text>
               <Text style={s.summaryLabel}>Violations</Text>
@@ -344,7 +349,7 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
                           {DAY_NAMES[di]}
                         </Text>
                         <Text style={[s.dayDateText, isDayOff && s.dayLabelTextOff]}>
-                          {dateStr.slice(5)}
+                          {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </Text>
                         {isDayOff && <Text style={s.dayOffLabel}>DAY OFF</Text>}
                       </View>
@@ -407,15 +412,15 @@ export default function PlanScheduleScreen({ staffId }: { staffId: string }) {
           )}
         </ScrollView>
       )}
-    </View>
+    </LinearGradient>
   );
 }
 
 // ── Styles ───────────────────────────────────────────
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#151A23' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  scroll: { padding: 16, paddingBottom: 40 },
+  scroll: { padding: 16, paddingBottom: 40, paddingTop: 60 },
 
   // Period selector
   periodRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 12, paddingBottom: 8 },

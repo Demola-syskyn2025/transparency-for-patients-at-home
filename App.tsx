@@ -1,4 +1,4 @@
-// App.tsx
+﻿// App.tsx
 
 import React, { useMemo } from 'react';
 
@@ -8,7 +8,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { ActivityIndicator, View, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+
+import { LinearGradient } from 'expo-linear-gradient';
 
 
 
@@ -110,6 +112,107 @@ const TAB_STYLE = {
 
 
 
+// ===================== CUSTOM NAVBAR ICONS =====================
+
+const HomeIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.iconContainer, focused && styles.iconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    {/* Simple clean house shape */}
+    <View style={styles.homeIcon}>
+      {/* Triangular roof */}
+      <View style={[styles.homeRoof, focused && styles.homeRoofFocused]} />
+      {/* Rectangular house body */}
+      <View style={[styles.homeBody, focused && styles.homeBodyFocused]} />
+      {/* Door in center */}
+      <View style={[styles.homeWindowDoor, focused && styles.homeWindowDoorFocused]} />
+    </View>
+  </View>
+);
+
+const ProfileIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.iconContainer, focused && styles.iconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={styles.profileIcon}>
+      <View style={[styles.profileHead, focused && styles.profileHeadFocused]} />
+      <View style={[styles.profileBody, focused && styles.profileBodyFocused]} />
+    </View>
+  </View>
+);
+
+const ChatIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.iconContainer, focused && styles.iconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={styles.chatIcon}>
+      <View style={[styles.chatBubble, focused && styles.chatBubbleFocused]} />
+      <View style={[styles.chatTail, focused && styles.chatTailFocused]} />
+    </View>
+  </View>
+);
+
+const AppointmentIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.iconContainer, focused && styles.iconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    {/* Calendar with grid cells */}
+    <View style={styles.appointmentIcon}>
+      {/* Calendar header bar */}
+      <View style={[styles.calendarHeader, focused && styles.calendarHeaderFocused]} />
+      {/* Grid cells */}
+      <View style={styles.calendarGrid}>
+        <View style={[styles.calendarCell, focused && styles.calendarCellFocused]} />
+        <View style={[styles.calendarCell, focused && styles.calendarCellFocused]} />
+        <View style={[styles.calendarCell, focused && styles.calendarCellFocused]} />
+        <View style={[styles.calendarCell, focused && styles.calendarCellFocused]} />
+      </View>
+    </View>
+  </View>
+);
+
+const ChecklistIcon = ({ focused }: { focused: boolean }) => (
+  <View style={[styles.iconContainer, focused && styles.iconFocused]}>
+    {focused && (
+      <LinearGradient
+        colors={['#A9C6CE', '#6294A1']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    )}
+    <View style={styles.checklistIcon}>
+      <Text style={[{ fontSize: 14, fontWeight: 'bold', color: focused ? '#fff' : '#8E9BA8' }]}>✓</Text>
+    </View>
+  </View>
+);
+
+
+
 // ===================== PATIENT TABS =====================
 
 function PatientTabs({ patientId, uid, apptService, checklistService }: any) {
@@ -118,7 +221,10 @@ function PatientTabs({ patientId, uid, apptService, checklistService }: any) {
 
     <Tab.Navigator screenOptions={TAB_STYLE}>
 
-      <Tab.Screen name="Home" options={{ headerShown: false }}>
+      <Tab.Screen name="Home" options={{ 
+        headerShown: false,
+        tabBarIcon: ({ focused }) => <HomeIcon focused={focused} />
+      }}>
 
         {() => (
 
@@ -138,25 +244,36 @@ function PatientTabs({ patientId, uid, apptService, checklistService }: any) {
 
       </Tab.Screen>
 
-      <Tab.Screen name="Appointments" options={{ title: 'My Appointments' }}>
+      <Tab.Screen name="Appointments" options={{ 
+        title: 'My Appointments',
+        tabBarIcon: ({ focused }) => <AppointmentIcon focused={focused} />
+      }}>
 
         {() => <PatientAppointmentScreen patientId={patientId} service={apptService} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Checklist">
+      <Tab.Screen name="Checklist" options={{
+        tabBarIcon: ({ focused }) => <ChecklistIcon focused={focused} />
+      }}>
 
         {() => <ChecklistScreen patientId={patientId} uid={uid} service={checklistService} role="patient" />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Chat" options={{ headerShown: false }}>
+      <Tab.Screen name="Chat" options={{ 
+        headerShown: false,
+        tabBarIcon: ({ focused }) => <ChatIcon focused={focused} />
+      }}>
 
         {() => <ChatScreen />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+      <Tab.Screen name="Profile" options={{ 
+        headerShown: false,
+        tabBarIcon: ({ focused }) => <ProfileIcon focused={focused} />
+      }}>
 
         {() => <ProfileScreen />}
 
@@ -178,31 +295,31 @@ function FamilyTabs({ userId, apptService, visitSummaryService }: any) {
 
     <Tab.Navigator screenOptions={TAB_STYLE}>
 
-      <Tab.Screen name="Dashboard" options={{ headerShown: false }}>
+      <Tab.Screen name="Dashboard" options={{ headerShown: false, tabBarIcon: ({ focused }) => <HomeIcon focused={focused} /> }}>
 
         {() => <FamilyDashboardScreen userId={userId} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Appointments">
+      <Tab.Screen name="Appointments" options={{ tabBarIcon: ({ focused }) => <AppointmentIcon focused={focused} /> }}>
 
         {() => <AppointmentsScreen role="family" patientId={userId} service={apptService} uid={userId} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Summaries" options={{ title: 'Visit Summaries' }}>
+      <Tab.Screen name="Summaries" options={{ title: 'Visit Summaries', tabBarIcon: ({ focused }) => <ChecklistIcon focused={focused} /> }}>
 
         {() => <CareVisitSummariesScreen patientId={userId} service={visitSummaryService} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Chat" options={{ headerShown: false }}>
+      <Tab.Screen name="Chat" options={{ headerShown: false, tabBarIcon: ({ focused }) => <ChatIcon focused={focused} /> }}>
 
         {() => <ChatScreen />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+      <Tab.Screen name="Profile" options={{ headerShown: false, tabBarIcon: ({ focused }) => <ProfileIcon focused={focused} /> }}>
 
         {() => <ProfileScreen />}
 
@@ -224,31 +341,31 @@ function StaffTabs({ staffId, apptService }: any) {
 
     <Tab.Navigator screenOptions={TAB_STYLE}>
 
-      <Tab.Screen name="Dashboard" options={{ headerShown: false }}>
+      <Tab.Screen name="Dashboard" options={{ headerShown: false, tabBarIcon: ({ focused }) => <HomeIcon focused={focused} /> }}>
 
         {() => <StaffDashboardScreen staffId={staffId} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="My Patients">
+      <Tab.Screen name="My Patients" options={{ tabBarIcon: ({ focused }) => <ProfileIcon focused={focused} /> }}>
 
         {() => <MyPatientsScreen staffId={staffId} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Plan" options={{ title: 'Plan Week' }}>
+      <Tab.Screen name="Plan" options={{ title: 'Plan Week', tabBarIcon: ({ focused }) => <ChecklistIcon focused={focused} /> }}>
 
         {() => <PlanScheduleScreen staffId={staffId} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Schedule" options={{ title: 'All Appointments' }}>
+      <Tab.Screen name="Schedule" options={{ title: 'All Appointments', tabBarIcon: ({ focused }) => <AppointmentIcon focused={focused} /> }}>
 
         {() => <AppointmentsScreen role="family" patientId={staffId} service={apptService} uid={staffId} />}
 
       </Tab.Screen>
 
-      <Tab.Screen name="Profile" options={{ headerShown: false }}>
+      <Tab.Screen name="Profile" options={{ headerShown: false, tabBarIcon: ({ focused }) => <ProfileIcon focused={focused} /> }}>
 
         {() => <ProfileScreen />}
 
@@ -513,3 +630,163 @@ export default function App() {
   );
 
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  iconFocused: {
+    // Gradient will be applied via LinearGradient component
+  },
+  // Home Icon
+  homeIcon: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  homeRoof: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderLeftWidth: 12,
+    borderRightWidth: 12,
+    borderBottomWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#8E9BA8',
+    position: 'absolute',
+    top: 2,
+  },
+  homeRoofFocused: {
+    borderBottomColor: '#fff',
+  },
+  homeBody: {
+    width: 18,
+    height: 14,
+    backgroundColor: '#8E9BA8',
+    position: 'absolute',
+    bottom: 0,
+  },
+  homeBodyFocused: {
+    backgroundColor: '#fff',
+  },
+  homeWindowDoor: {
+    width: 5,
+    height: 7,
+    backgroundColor: '#161B24',
+    position: 'absolute',
+    bottom: 2,
+  },
+  homeWindowDoorFocused: {
+    backgroundColor: '#2a3647',
+  },
+  // Profile Icon
+  profileIcon: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileHead: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#8E9BA8',
+    marginBottom: 2,
+  },
+  profileHeadFocused: {
+    backgroundColor: '#fff',
+  },
+  profileBody: {
+    width: 16,
+    height: 11,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    backgroundColor: '#8E9BA8',
+  },
+  profileBodyFocused: {
+    backgroundColor: '#fff',
+  },
+  // Chat Icon
+  chatIcon: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  chatBubble: {
+    width: 22,
+    height: 18,
+    backgroundColor: '#8E9BA8',
+    borderRadius: 6,
+    borderBottomRightRadius: 2,
+  },
+  chatBubbleFocused: {
+    backgroundColor: '#fff',
+  },
+  chatTail: {
+    width: 5,
+    height: 5,
+    backgroundColor: '#8E9BA8',
+    position: 'absolute',
+    bottom: 4,
+    right: 2,
+    transform: [{ rotate: '45deg' }],
+  },
+  chatTailFocused: {
+    backgroundColor: '#fff',
+  },
+  // Appointment Icon
+  appointmentIcon: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarHeader: {
+    width: 22,
+    height: 4,
+    backgroundColor: '#8E9BA8',
+    position: 'absolute',
+    top: 2,
+    borderRadius: 1,
+  },
+  calendarHeaderFocused: {
+    backgroundColor: '#fff',
+  },
+  calendarGrid: {
+    width: 22,
+    height: 18,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    position: 'absolute',
+    bottom: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 1,
+  },
+  calendarCell: {
+    width: 5,
+    height: 5,
+    backgroundColor: '#8E9BA8',
+    borderRadius: 1,
+  },
+  calendarCellFocused: {
+    backgroundColor: '#fff',
+  },
+  // Checklist Icon
+  checklistIcon: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

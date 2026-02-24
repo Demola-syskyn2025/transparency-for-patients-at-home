@@ -1,8 +1,9 @@
 // src/screens/StaffDashboardScreen.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import api from '../config/api';
 import { rescheduleApi } from '../services/rescheduleApi';
 import type { AppointmentDto, RescheduleRequestDto } from '../utils/apiTypes';
@@ -172,11 +173,11 @@ export default function StaffDashboardScreen({ staffId }: { staffId: string }) {
             <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick Actions</Text>
             <View style={styles.actionsRow}>
               <Pressable style={styles.actionBtn} onPress={() => navigation.navigate('MyPatients')}>
-                <Text style={styles.actionIcon}>👥</Text>
+                <Ionicons name="people" size={28} color="#7FB3D5" />
                 <Text style={styles.actionText}>My Patients</Text>
               </Pressable>
               <Pressable style={styles.actionBtn} onPress={() => navigation.navigate('Schedule')}>
-                <Text style={styles.actionIcon}>📅</Text>
+                <Ionicons name="calendar" size={28} color="#7FB3D5" />
                 <Text style={styles.actionText}>All Appointments</Text>
               </Pressable>
             </View>

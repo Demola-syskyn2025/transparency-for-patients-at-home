@@ -1,7 +1,9 @@
 // src/screens/MyPatientsScreen.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import api from '../config/api';
 import type { CareAssignmentDto } from '../utils/apiTypes';
 
@@ -32,13 +34,20 @@ export default function MyPatientsScreen({ staffId }: { staffId: string }) {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={['#6294A1', '#151A23']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.29]} style={{ flex: 1 }}>
       <FlatList
         data={assignments}
         keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 20, paddingTop: 60 }}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.greeting}>My Patients</Text>
+            <Text style={styles.date}>{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+          </>
+        }
         ListEmptyComponent={
-          <View style={styles.empty}>
+          <View style={styles.emptyCard}>
+            <Ionicons name="people-outline" size={48} color="rgba(255,255,255,0.4)" />
             <Text style={styles.emptyText}>No patients assigned</Text>
           </View>
         }
@@ -52,51 +61,50 @@ export default function MyPatientsScreen({ staffId }: { staffId: string }) {
               })
             }
           >
-            <View style={styles.row}>
+            <View style={styles.cardRow}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
                   {item.patient.firstName[0]}{item.patient.lastName[0]}
                 </Text>
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.name}>
+                <Text style={styles.cardTitle}>
                   {item.patient.firstName} {item.patient.lastName}
                 </Text>
-                <Text style={styles.sub}>{item.patient.email}</Text>
-                {item.isPrimary && <Text style={styles.primary}>Primary</Text>}
+                <Text style={styles.cardSub}>{item.patient.email}</Text>
+                {item.isPrimary && <Text style={[styles.cardSub, { color: '#7FB3D5' }]}>Primary Caregiver</Text>}
               </View>
-              <Text style={styles.arrow}>›</Text>
+              <Ionicons name="chevron-forward" size={20} color="#7FB3D5" />
             </View>
           </Pressable>
         )}
       />
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#151A23' },
   center: { flex: 1, backgroundColor: '#151A23', justifyContent: 'center', alignItems: 'center' },
+  greeting: { color: '#fff', fontSize: 24, fontWeight: '700' },
+  date: { color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 24 },
   card: {
     backgroundColor: 'rgba(42,54,71,0.6)',
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
   },
-  row: { flexDirection: 'row', alignItems: 'center' },
+  cardRow: { flexDirection: 'row', alignItems: 'center' },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(127,179,213,0.2)',
-    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(127,179,213,0.3)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: { color: '#7FB3D5', fontWeight: '700', fontSize: 16 },
-  name: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  sub: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
-  primary: { color: '#22C55E', fontSize: 11, fontWeight: '700', marginTop: 2 },
-  arrow: { color: 'rgba(255,255,255,0.3)', fontSize: 24 },
-  empty: { padding: 40, alignItems: 'center' },
-  emptyText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
+  cardTitle: { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  cardSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
+  emptyCard: { padding: 40, alignItems: 'center', marginTop: 40 },
+  emptyText: { color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 16 },
 });

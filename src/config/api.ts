@@ -1,13 +1,21 @@
 // src/config/api.ts
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { Platform } from 'react-native';
 
-// Change this to your backend URL
-// For Android emulator use 10.0.2.2, for physical device use your machine's IP
-// For Android emulator: 'http://10.0.2.2:8080/api'
-// For web or iOS simulator: 'http://localhost:8080/api'
-// For physical device: 'http://<YOUR_IP>:8080/api'
-export const API_BASE_URL = 'http://localhost:8080/api'; // Use localhost for web testing
+// Determine API URL based on platform
+let API_BASE_URL: string;
+
+if (Platform.OS === 'web') {
+  // Web: use localhost
+  API_BASE_URL = 'http://localhost:8080/api';
+} else {
+  // Mobile (iOS/Android): use your local network IP
+  // Make sure your server is bound to 0.0.0.0 and firewall allows port 8080
+  API_BASE_URL = 'http://192.168.101.101:8080/api';
+}
+
+export { API_BASE_URL };
 
 const api = axios.create({
   baseURL: API_BASE_URL,
